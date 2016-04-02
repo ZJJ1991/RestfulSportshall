@@ -6,6 +6,7 @@ Modified on 06.03.2016
 Provides the database API to access the forum persistent data.
 
 @author: ivan
+
 @modified: chenhaoyu
 '''
 
@@ -126,6 +127,7 @@ class Engine(object):
             cur.executescript(sql)
 
     #METHODS TO CREATE THE TABLES PROGRAMMATICALLY WITHOUT USING SQL SCRIPT
+	#METHODS TO CREATE THE SPORT TABLE
     def create_sports_table(self):
         '''
         Create the table ``sports`` programmatically, without using .sql file.
@@ -154,9 +156,10 @@ class Engine(object):
                 return False
         return True
 
+	#METHODS TO CREATE THE ORDER TABLE
     def create_order_table(self):
         '''
-        Create the table ``messages`` programmatically, without using .sql file.
+        Create the table ``order`` programmatically, without using .sql file.
 
         Print an error message in the console if it could not be created.
 
@@ -166,12 +169,11 @@ class Engine(object):
         '''
         keys_on = 'PRAGMA foreign_keys = ON'
         stmnt = 'CREATE TABLE orders(order_id INTEGER PRIMARY KEY AUTOINCREMENT, \
-                    sport_id INTEGER, user_nickname TEXT, timestamp INTEGER, \
-					user_id INTEGER, \
+                    user_nickname TEXT, sport_id INTEGER,sportname TEXT, timestamp INTEGER, \
                     FOREIGN KEY(sport_id) REFERENCES sports(sport_id) \
                     ON DELETE CASCADE, \
-                    FOREIGN KEY(user_id,user_nickname) \
-                    REFERENCES users(user_id, nickname) ON DELETE SET NULL)'
+                    FOREIGN KEY (user_nickname) \
+                    REFERENCES users(nickname) ON DELETE SET NULL)'
         con = sqlite3.connect(self.db_path)
         with con:
             #Get the cursor object.
@@ -186,6 +188,7 @@ class Engine(object):
                 return False
         return True	
 		
+	#METHODS TO CREATE THE USER TABLE
     def create_users_table(self):
         '''
         Create the table ``users`` programmatically, without using .sql file.
@@ -198,7 +201,7 @@ class Engine(object):
         '''
         keys_on = 'PRAGMA foreign_keys = ON'
         stmnt = 'CREATE TABLE users(user_id INTEGER PRIMARY KEY AUTOINCREMENT,\
-                                    nickname TEXT UNIQUE,password TEXT, regDate INTEGER,\
+                                    nickname TEXT UNIQUE, regDate INTEGER,\
                                     lastLogin INTEGER, timesviewed INTEGER,\
                                     UNIQUE(user_id, nickname))'
         #Connects to the database. Gets a connection object
@@ -216,36 +219,7 @@ class Engine(object):
                 return False
         return True
 
-    def create_admin_table(self):
-        '''
-        Create the table ``admin`` programmatically, without using .sql file.
-
-        Print an error message in the console if it could not be created.
-
-        :return: ``True`` if the table was successfully created or ``False``
-            otherwise.
-
-        '''
-        keys_on = 'PRAGMA foreign_keys = ON'
-        stmnt = 'CREATE TABLE admin(admin_id INTEGER PRIMARY KEY AUTOINCREMENT,\
-                                    nickname TEXT UNIQUE, password TEXT, regDate INTEGER,\
-                                    lastLogin INTEGER, timesviewed INTEGER,\
-                                    UNIQUE(admin_id, nickname))'
-        #Connects to the database. Gets a connection object
-        con = sqlite3.connect(self.db_path)
-        with con:
-            #Get the cursor object.
-            #It allows to execute SQL code and traverse the result set
-            cur = con.cursor()
-            try:
-                cur.execute(keys_on)
-                #execute the statement
-                cur.execute(stmnt)
-            except sqlite3.Error, excp:
-                print "Error %s:" % excp.args[0]
-                return False
-        return True		
-		
+	#METHODS TO CREATE THE USER PROFILE TABLE
     def create_users_profile_table(self):
         '''
         Create the table ``users_profile`` programmatically, without using
@@ -284,6 +258,7 @@ class Engine(object):
 
         # return False
 
+	#METHODS TO CREATE THE FRIENDS TABLE
     def create_friends_table(self):
         '''
         Create the table ``friends`` programmatically, without using .sql file.
@@ -413,55 +388,47 @@ class Connection(object):
     #Here the helpers that transform database rows into dictionary. They work
     #similarly to ORM
 
-    #Helpers for messages
+    #Helpers for sports
     def _create_sport_object(self, row):
         '''
-        It takes a :py:class:`sqlite3.Row` and transform it into a dictionary.
+        It takes a database Row and transform it into a python dictionary.
 
         :param row: The row obtained from the database.
         :type row: sqlite3.Row
-        :return: a dictionary containing the following keys:
+        :return: a dictionary with the following format:
 
-            * ``sport_id``: id of the sport (int)
-            * ``sportname``: ordered sport name
-            * ``hallnumber``: The hallnumber of ordered sport.
-            * ``time``: The sport time.
-            * ``note``: The note of this sport.
-			Note that all values in the returned dictionary are string unless
-            otherwise stated.
+
+            * ``sport_id``: spoort selection id
+            * ``sportname``: name of the sport
+            * ``time``: sport time
+            * ``hallnumber``: sportplace
+            * ``note``: some desciptions of the sport
+
+            Note that all values are string if they are not otherwise indicated.
 
         '''
-        sport_id = 'spo-' + str(row['sport_id'])
-        sportname = row['sportname']
-        sporthall = row['hallnumber']
-        sporttime = row['time']
-        sport_note = row['note']
-        sport = {'sport_id': sport_id, 'sportname': sportname,
-                   'sporthall': hallnumber, 'sporttime': time,
-                   'note': sport_note}
-        return sport
-
+        sport_id = row['sport_id']
+        return {'sport id': sport_id,
+		'sport name': row['sportname'],
+		'sporthall number': row['hallnumber'],
+		'note': row['note']
+		}
 
     def _create_sport_list_object(self, row):
         '''
-        Same as :py:meth:`_create_message_object`. However, the resulting
-        dictionary is targeted to build messages in a list.
+        Same as :py:meth:`_create_sport_object`. However, the resulting
+        dictionary is targeted to build sports in a list.
 
         :param row: The row obtained from the database.
         :type row: sqlite3.Row
-        :return: a dictionary with the keys ``messageid``, ``title``,
-            ``timestamp`` and ``sender``.
+        :return: a dictionary with the keys ``sportname`` and
+            ``time``
 
-        '''		
-        sport_id = 'spo-' + str(row['sport_id'])
-        sportname = row['sportname']
-        sporthall = row['hallnumber']
-        sporttime = row['time']
-        sport_note = row['note']
-        sport = {'sport_id': sport_id, 'sportname': sportname,
-                   'sporthall': hallnumber, 'sporttime': time,
-                   'note': sport_note}
-        return sport		
+        '''
+        return {'sportname': row['sportname'], 'time': row['time']}
+
+		
+    #Helpers for orders
 
     def _create_order_object(self, row):
         '''
@@ -471,46 +438,42 @@ class Connection(object):
         :type row: sqlite3.Row
         :return: a dictionary containing the following keys:
 
-            * ``order_id``: id of the sport order (int)
-            * ``sportname``: ordered sport name
+            * ``order_id``: id of the order (int)
+            * ``sport_id``: sport to order
+            * ``user_nickname``: which user is ordering
             * ``timestamp``: UNIX timestamp (long integer) that specifies when
-              the order was created.
-            * ``nickname``: The nickname of the user.
-            * ``user_id``: The id of the user.
+              the message was created.
+
             Note that all values in the returned dictionary are string unless
             otherwise stated.
 
         '''
-        order_id = 'ord-' + str(row['order_id'])
-        user_nickname = row['user_nickname']
-        sport_id = row['sport_id']
-        user_id = row['user_id']
-        order_timestamp = row['timestamp']
-        order = {'orderid': order_id, 'user_nickname': user_nickname,
-                   'timestamp': order_timestamp, 'sport_id': sport_id, 'user_id': user_id}
+        order_id = 'order-' + str(row['order_id'])
+        user = row['user_nickname']
+        sport = row['sport_id']
+        timestamp = row['timestamp']
+        order = {'orderid': order_id, 'usernickname': user,'order sport id': sport,
+                   'timestamp': timestamp}
         return order
 
     def _create_order_list_object(self, row):
         '''
         Same as :py:meth:`_create_order_object`. However, the resulting
-        dictionary is targeted to build messages in a list.
+        dictionary is targeted to build orders in a list.
 
         :param row: The row obtained from the database.
         :type row: sqlite3.Row
-        :return: a dictionary with the keys ``orderid``, ``usernickname``,
-            ``timestamp`` and ``sportid`` and ``user id``.
+        :return: a dictionary with the keys ``orderid``, ``user``,
+            ``timestamp`` and ``sport_id``.
 
         '''
-        order_id =  'ord-' + str(row['order_id'])
-        user_nickname = row['user_nickname']
+        order_id = 'order-' + str(row['order_id'])
+        user = row['user_nickname']
         sport_id = row['sport_id']
-        user_id = row['user_id']
-        order_timestamp = row['timestamp']
-        order = {'order_id': order_id, 'user_nickname': user_nickname,
-                   'timestamp': order_timestamp, 'sport_id': sport_id, 'user_id': user_id}
+        timestamp = row['timestamp']
+        order = {'order_id': order_id, 'user_nickname': user,'timestamp': timestamp, 'sport_id': sport_id}
         return order
-		
-		
+
     #Helpers for users
     def _create_user_object(self, row):
         '''
@@ -582,28 +545,29 @@ class Connection(object):
         return {'registrationdate': row['regDate'], 'nickname': row['nickname']}
 
     #API ITSELF
-    #Order Table API.
+	
+    #ORDER Table API.
     def get_order(self, order_id):
         '''
         Extracts a order from the database.
 
-        :param orderid: The id of the order. Note that messageid is a
-            string with format ``msg-\d{1,3}``.
+        :param orderid: The id of the order. Note that orderid is a
+            string with format ``order-\d{1,3}``.
         :return: A dictionary with the format provided in
-            :py:meth:`_create_message_object` or None if the order with target
+            :py:meth:`_create_order_object` or None if the order with target
             id does not exist.
-        :raises ValueError: when ``messageid`` is not well formed
+        :raises ValueError: when ``orderid`` is not well formed
 
         '''
         #Extracts the int which is the id for a order in the database
-        match = re.match(r'ord-(\d{1,3})', order_id)
+        match = re.match(r'order-(\d{1,3})', order_id)
         if match is None:
-            raise ValueError("The orderid is malformed")
-        oreder_id = int(match.group(1))
+            raise ValueError("The order_id is malformed")
+        order_id = int(match.group(1))
         #Activate foreign key support
         self.set_foreign_keys_support()
         #Create the SQL Query
-        query = 'SELECT * FROM order WHERE order_id = ?'
+        query = 'SELECT * FROM orders WHERE order_id = ?'
         #Cursor and row initialization
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
@@ -618,18 +582,18 @@ class Connection(object):
         #Build the return object
         return self._create_order_object(row)
 
-    def get_orders(self, nickname=None, number_of_orders=-1,
+    def get_orders(self, user_nickname=None, number_of_orders=-1,
                      before=-1, after=-1):
         '''
         Return a list of all the orders in the database filtered by the
         conditions provided in the parameters.
 
-        :param nickname: default None. Search messages of a user with the given
-            nickname. If this parameter is None, it returns the messages of
+        :param user_nickname: default None. Search orders of a user with the given
+            nickname. If this parameter is None, it returns the orders of
             any user in the system.
         :type nickname: str
         :param number_of_orders: default -1. Sets the maximum number of
-            messages returning in the list. If set to -1, there is no limit.
+            orders returning in the list. If set to -1, there is no limit.
         :type number_of_orders: int
         :param before: All timestamps > ``before`` (UNIX timestamp) are removed.
             If set to -1, this condition is not applied.
@@ -641,10 +605,10 @@ class Connection(object):
         :return: A list of orders. Each order is a dictionary containing
             the following keys:
 
-            * ``orderid``: string with the format msg-\d{1,3}.Id of the
+            * ``orderid``: string with the format order-\d{1,3}.Id of the
                 order.
-            * ``username``: nickname of the user.
-            * ``sportname``: string containing the sport name of the order.
+            * ``user_nickname``: nickname of the order's owner.
+            * ``sport_id``: which sport ordered.
             * ``timestamp``: UNIX timestamp (long int) that specifies when the
                 order was created.
 
@@ -656,21 +620,21 @@ class Connection(object):
 
         '''
         #Create the SQL Statement build the string depending on the existence
-        #of nickname, numbers_of_orders, before and after arguments.
-        query = 'SELECT * FROM order'
+        #of nickname, numbero_of_orders, before and after arguments.
+        query = 'SELECT * FROM orders'
           #Nickname restriction
-        if nickname is not None or before != -1 or after != -1:
+        if user_nickname is not None or before != -1 or after != -1:
             query += ' WHERE'
-        if nickname is not None:
-            query += " user_nickname = '%s'" % nickname
+        if user_nickname is not None:
+            query += " user_nickname = '%s'" % user_nickname
           #Before restriction
         if before != -1:
-            if nickname is not None:
+            if user_nickname is not None:
                 query += ' AND'
             query += " timestamp < %s" % str(before)
           #After restriction
         if after != -1:
-            if nickname is not None or before != -1:
+            if user_nickname is not None or before != -1:
                 query += ' AND'
             query += " timestamp > %s" % str(after)
           #Order of results
@@ -700,35 +664,25 @@ class Connection(object):
         '''
         Delete the order with id given as parameter.
 
-        :param str order_id: id of the order to remove.Note that orderid
-            is a string with format ``ord-\d{1,3}``
+        :param str orderid: id of the order to remove.Note that messageid
+            is a string with format ``order-\d{1,3}``
         :return: True if the order has been deleted, False otherwise
-        :raises ValueError: if the orderId has a wrong format.
+        :raises ValueError: if the messageId has a wrong format.
 
         '''
         #Extracts the int which is the id for a order in the database
-        match = re.match(r'ord-(\d{1,3})', order_id)
+        match = re.match(r'order-(\d{1,3})', order_id)
         if match is None:
-            raise ValueError("The orderid is malformed")
+            raise ValueError("The order_id is malformed")
         order_id = int(match.group(1))
         '''
-        #TASK5 TODO:#
-        * Implement this method.
-        * HINTS:
-           * To remove a message use the DELETE sql command
-           * To check if the message has been previously deleted you can check
-             the size of the rows returned in the cursor. You can check it from
-             the attribute cursor.rowcount. If the rowcount is < 1 means that
-             no row has been  deleted and hence you should return False.
-             Otherwise return True.
-           * Be sure that you commit the current transaction
         * HOW TO TEST: Use the database_api_tests_message. The following tests
           must pass without failure or error:
-            * test_delete_message
-            * test_delete_message_malformed_id
-            * test_delete_message_noexisting_id
+            * test_delete_order
+            * test_delete_order_malformed_id
+            * test_delete_order_noexisting_id
         '''
-        query = 'DELETE FROM order WHERE order_id = ?'
+        query = 'DELETE FROM orders WHERE order_id = ?'
         self.set_foreign_keys_support()
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
@@ -739,85 +693,258 @@ class Connection(object):
             return False
         return True
 
-    def create_order(self, sport_id, usernickname, user_id):
+    def create_order(self, user_nickname,
+                    sport_id):
         '''
         Create a new order with the data provided as arguments.
 
-        :param str sportname: the order sport name
-        :param str user: the nickname of the person who order this
-            sport
-        :param str ipaddress: The ip address from which the order was created.
-            It is a string with format "xxx.xxx.xxx.xxx". If no ipaddress is
-            provided then database will store "0.0.0.0"
+
+        :param str user_nickname: the nickname of the person who is ordering.
+
+        :param str sport_id:which sport is ordered
+
         :return: the id of the created order or None if the order was
-            not found. Note that it is a string with the format msg-\d{1,3}.
+            not found. Note that it is a string with the format order-\d{1,3}.
 
         :raises ForumDatabaseError: if the database could not be modified.
-        :raises ValueError: if the replyto has a wrong format.
+
+        * HOW TO TEST: Use the database_api_tests_order. The following tests
+                       must pass without failure or error:
+                * test_create_order
+                * test_create_order_malformed_id
+                * test_create_order_noexistingid
+        '''
+        _timestamp = time.mktime(datetime.now().timetuple())
+        _user_nickname = user_nickname
+        _sport_id = sport_id
+        
+        self.set_foreign_keys_support()
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+			
+        query2 = 'SELECT sportname from sports WHERE sport_id = ?'
+        pvalue2 = (sport_id,)
+        cur.execute(query2,pvalue2)
+        row = cur.fetchone()
+        if row is None:
+            _sport_id = None
+        else:
+            _sport_name = row["sportname"]
+
+        query1 = 'INSERT INTO orders(user_nickname,sport_id,sportname,timestamp) VALUES(?,?,?,?)'
+        pvalue1 = (_user_nickname,_sport_id,_sport_name,_timestamp)
+        # cur = self.con.cursor()
+        cur.execute(query1,pvalue1)
+        self.con.commit()
+        order_id = cur.lastrowid
+        
+        if order_id is None:
+            ordernumber = None
+        else:
+            ordernumber = 'order-'+str(order_id)
+        return ordernumber
+
+    #MESSAGE UTILS
+	
+    def get_orderuser(self, order_id):
+        match = re.match(r'order-(\d{1,3})', order_id)
+        if match is None:
+            raise ValueError("The order_id is malformed")
+        order_id = int(match.group(1))
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Create the SQL Query
+        query = 'SELECT * FROM orders WHERE order_id = ?'
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute main SQL Statement
+        pvalue = (order_id,)
+        cur.execute(query, pvalue)
+        #Process the response.
+        #Just one row is expected
+        row = cur.fetchone()
+        if row is None:
+            return None
+        #Build the return object
+        else:
+			username = row["user_nickname"]
+        return username
+		
+    def contains_order(self, order_id):
+        '''
+        Checks if a order is in the database.
+
+        :param str order_id: Id of the order to search. Note that messageid
+            is a string with the format order-\d{1,3}.
+        :return: True if the order is in the database. False otherwise.
 
         '''
+        return self.get_order(order_id) is not None
+
+    #Sport Table API.
+    def get_sports(self):
         '''
-        TASK5 TODO:
-        * Finish this method
-        HINTS
-        * Remember that add a new row you must use the INSERT command.
-         sql command
-        * You have to add the following fields in the INSERT command:
-            - title -> passed as argument
-            - body -> passed as argument
-            - user_nickname -> passed as sender argument
-            - user_id -> You must find the user_id accessing the users table.
-                         Use the following statement:
-                         'SELECT user_id from users WHERE nickname = ?'
-        * You can extract the id of the new row using lastrowid property
-          in cursor
-        * Be sure that you commit the current transaction
-        * Remember to activate the foreign key support
-        * HOW TO TEST: Use the database_api_tests_message. The following tests
-                       must pass without failure or error:
-                * test_create_message
-                * test_append_answer
-                * test_append_answer_malformed_id
-                * test_append_answer_noexistingid
+        Extracts all users in the database.
+
+        :return: list of Users of the database. Each user is a dictionary
+            that contains two keys: ``sportname``(str) and ``time``
+           . None is returned if the database
+            has no users.
+
         '''
-        _sportid = sport_id
-        _name = usernickname
-        _timestamp = time.mktime(datetime.now().timetuple())
-        _userid = user_id
+        #Create the SQL Statements
+          #SQL Statement for retrieving the users
+        query = 'SELECT * FROM sports'
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Create the cursor
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute main SQL Statement
+        cur.execute(query)
+        #Process the results
+        rows = cur.fetchall()
+        if rows is None:
+            return None
+        #Process the response.
+        sports = []
+        for row in rows:
+            sports.append(self._create_sport_list_object(row))
+        return sports
+
+    def get_sport(self, sportname):
+        '''
+        Extracts all the information of a sport.
+
+        :param str sportname: The sportname of the sport to search for.
+        :return: dictionary with the format provided in the method:
+            :py:meth:`_create_sport_object`
+
+        '''
+        #Create the SQL Statements
+          #SQL Statement for retrieving the sport given a sportname
+        query1 = 'SELECT sport_id from sports WHERE sportname = ?'
+          #SQL Statement for retrieving the sport information
+        query2 = 'SELECT sports.* FROM sports \
+                  WHERE sports.sport_id = ?'
+          #Variable to be used in the second query.
+        sport_id = None
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute SQL Statement to retrieve the id given a sportname
+        pvalue = (sportname,)
+        cur.execute(query1, pvalue)
+        #Extract the sport id
+        row = cur.fetchone()
+        if row is None:
+            return None
+        sport_id = row["sport_id"]
+        # Execute the SQL Statement to retrieve the sport invformation.
+        # Create first the valuse
+        pvalue = (sport_id, )
+        #execute the statement
+        cur.execute(query2, pvalue)
+        #Process the response. Only one posible row is expected.
+        row = cur.fetchone()
+        return self._create_sport_object(row)
+
+    def delete_sport(self, sportname):
+        '''
+        Remove all sport information of the sport with the sportname passed in as
+        argument.
+
+        :param str sportname: The sportname of the sport to remove.
+
+        :return: True if the sport is deleted, False otherwise.
+
+        '''
+        #Create the SQL Statements
+          #SQL Statement for deleting the sport information
+        query = 'DELETE FROM sports WHERE sportname = ?'
+        #Activate foreign key support
+        self.set_foreign_keys_support()
+        #Cursor and row initialization
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        #Execute the statement to delete
+        pvalue = (sportname,)
+        cur.execute(query, pvalue)
+        self.con.commit()
+        #Check that it has been deleted
+        if cur.rowcount < 1:
+            return False
+        return True
+
+    def append_sport(self, sportname, sport):
+        '''
+        Create a new sport in the database.
+
+        :param str sportname: The name of the sport to add
+        :param dict sport: a dictionary with the information to be modified. The
+        dictionary has the following structure:
+		:return: a dictionary with the following format:
+                .. code-block:: javascript
+
+            * ``sport_id``: spoort selection id
+            * ``sportname``: name of the sport
+            * ``time``: sport time
+            * ``hallnumber``: sportplace
+            * ``note``: some desciptions of the sport
+
+        Note that all values are string if they are not otherwise indicated.
+        sport_id = row['sport_id']
+        return {'sport id': sport_id,
+		'sport name': row['sportname'],
+		'sporthall number': row['hallnumber'],
+		'note': row['note']
+		}
+
+        :return: the sportname of the sport or None if the
+            ``sportname`` passed as parameter is not  in the database.
+        :raise ValueError: if the sport argument is not well formed.
+
+        '''
+        #Create the SQL Statements
+          #SQL Statement for extracting the sport id given a sport name
+        query1 = 'SELECT sport_id from sports WHERE sportname = ?'
+          #SQL Statement to create the row in  sports table
+        query2 = 'INSERT INTO sports(sportname,time,hallnumber,note)\
+                  VALUES(?,?,?,?)'
+          #SQL Statement to create the row in sports table
+        #temporal variables for sports table
+
+        _sport_name = sport.get('sportname', None)
+        _sport_time = sport.get('time', None)
+        _number = sport.get('hallnumber', None)
+        _note = sport.get('note', None)
         
         #Activate foreign key support
         self.set_foreign_keys_support()
         #Cursor and row initialization
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
-		
-        #Create the SQL Statements
-        #SQL Statement for extracting the orderid given a sport_id
-        query1 = 'SELECT order_id from order WHERE sport_id = ?'
-        #SQL Statement to create the row in  order table
-        query2 = 'INSERT INTO order(sport_id,user_nickname,timestamp,user_id)\
-                  VALUES(?,?,?,?)'		
-		
-        #Execute the statement to extract the id associated to a sport_id
-        pvalue = (sport_id,)
+        #Execute the statement to extract the id associated to a nickname
+        pvalue = (sportname,)
         cur.execute(query1, pvalue)
-        #No value expected (no other user with that sport_id expected)
+        #No value expected (no other sport with that name expected)
         row = cur.fetchone()
-        #If there is no user add rows in order table
+        #If there is no sport add rows in sport
         if row is None:
-            #Add the row in order table
+            #Add the row in sports table
             # Execute the statement
-            pvalue = (_sportid, _name, _timestamp, _userid)
+            pvalue = (sportname, _sport_time, _number, _note)
             cur.execute(query2, pvalue)
+
             self.con.commit()
-            #We do not do any comprobation and return the sport_id
-            return sport_id
+            #We do not do any comprobation and return the sportname
+            return sportname
         else:
-            return None	
+            return False
 
-    #Sport Table API.
-
-    #ORDER UTILS
 
     #ACCESSING THE USER and USER_PROFILE tables
     def get_users(self):
@@ -1119,15 +1246,6 @@ class Connection(object):
             return None
 
     # UTILS
-    def get_friends(self, nickname):
-        '''
-        Get a list with friends of a user.
-
-        :param str nickname: nickname of the target user
-        :return: a list of users nicknames or None if ``nickname`` is not in the
-            database
-        '''
-        raise NotImplementedError("")
 
     def get_user_id(self, nickname):
         '''
