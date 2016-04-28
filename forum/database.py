@@ -721,7 +721,17 @@ class Connection(object):
         self.set_foreign_keys_support()
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
-			
+        query3 ='SELECT * FROM orders'
+        cur.execute(query3)
+        rows = cur.fetchall()
+        row = cur.fetchone()		
+        for row in rows:
+            if int(_timestamp)-int(row["timestamp"]) > 1000*3600*24*7:
+				order_id=row["order_id"]
+				query4 = 'DELETE FROM orders WHERE order_id = ?'
+				pvalue4 = (order_id,)
+				cur.execute(query4,pvalue4)
+				self.con.commit()			
         query2 = 'SELECT sportname from sports WHERE sport_id = ?'
         pvalue2 = (sport_id,)
         cur.execute(query2,pvalue2)
