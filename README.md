@@ -27,3 +27,9 @@ change user into user_profile, friends, sports, orders to create each table
 test each API by inputting this sentence:
 con.get_user()
 change get_users() into get_user() and other APIs to test each API
+
+RESTful API test
+1. Go to the root of the repository
+2. To set local server run the following code:
+python -m forum.resources
+3. To test each API through the DHC tool with respective commends
