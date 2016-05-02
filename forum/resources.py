@@ -100,13 +100,13 @@ def close_connection(exc):
 
 
 #Define the resources
-class Messages(Resource):
+class orders(Resource):
     '''
-    Resource Messages implementation
+    Resource orders implementation
     '''
     def get(self):
         '''
-        Get all messages.
+        Get all orders.
 
         INPUT parameters:
           None
@@ -131,15 +131,15 @@ class Messages(Resource):
          * The attribute headline is obtained from the column messages.title
          * The attribute author is obtained from the column messages.sender
         '''
-        #Extract messages from database
-        messages_db = g.con.get_messages()
+        #Extract orders from database
+        orders_db = g.con.get_orders()
 
         #Create the envelope
         envelope = {}
         collection = {}
         envelope["collection"] = collection
         collection['version'] = "1.0"
-        collection['href'] = api.url_for(Messages)
+        collection['href'] = api.url_for(orders)
         collection['links'] = [
                                 {'prompt': 'List of all users in the Forum',
                                 'rel': 'users-all', 'href': api.url_for(Users)
@@ -159,8 +159,8 @@ class Messages(Resource):
         }
         #Create the items
         items = []
-        for message in messages_db:
-            _messageid = message['messageid']
+        for order in orders_db:
+            _orderid = order['orderid']
             _headline = message['title']
             _url = api.url_for(Message, messageid=_messageid)
             message = {}
@@ -178,7 +178,7 @@ class Messages(Resource):
 
     def post(self):
         '''
-        Adds a a new message.
+        Adds a a new order.
 
         REQUEST ENTITY BODY:
          * Media type: Collection+JSON:
@@ -247,14 +247,14 @@ class Messages(Resource):
             # the template.data array does not exist.
             return create_error_response(400, "Wrong request format",
                                          "Be sure you include message title and body")
-        #Create the new message and build the response code'
-        newmessageid = g.con.create_message(title, body, sender, ipaddress)
-        if not newmessageid:
+        #Create the new order and build the response code'
+        neworderid = g.con.create_order(title, body, sender, ipaddress)
+        if not neworderid:
             return create_error_response(500, "Problem with the database",
                                          "Cannot access the database")
 
         #Create the Location header with the id of the message created
-        url = api.url_for(Message, messageid=newmessageid)
+        url = api.url_for(Order, orderid=neworderid)
 
         #RENDER
         #Return the response
