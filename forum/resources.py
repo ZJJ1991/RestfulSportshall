@@ -1,3 +1,10 @@
+'''
+Created on 26.01.2013
+Modified on 09.03.2016
+@author: ivan
+
+@modified: chenhaoyu, zhoujunjie
+'''
 #TODO: Create another file
 import json
 
@@ -91,9 +98,455 @@ def close_connection(exc):
     if hasattr(g, 'con'):
         g.con.close()
 
+#Define the resources
+class Orders(Resource):
+    '''
+    Resource Orders implementation
+    '''
+    def get(self):
+        '''
+        Get all orders.
+
+        INPUT parameters:
+          None
+
+        RESPONSE ENTITY BODY:
+        * Media type: Collection+JSON:
+             http://amundsen.com/media-types/collection/
+           - Extensions: template validation and value-types
+             https://github.com/collection-json/extensions
+         * Profile: Forum_order
+           http://atlassian.virtues.fi: 8090/display/PWP
+           /Exercise+4#Exercise4-Forum_order
+
+        Link relations used in items: None
+        Semantic descriptions used in items: headline
+        Link relations used in links: users-all
+        Semantic descriptors used in template: order_id, timestamp, user_nickname,
+        sport_id.
+
+        NOTE:
+         * The attribute order_id is obtained from the column Orders.order_id
+         * The attribute user_nickname is obtained from the column Orders.user_nickname
+         * The attribute sport_id is obtained from the column Orders.sport_id
+        '''
+        #Extract Orders from database
+        orders_db = g.con.get_orders()
+
+        #Create the envelope
+        envelope = {}
+        collection = {}
+        envelope["collection"] = collection
+        collection['version'] = "1.0"
+        collection['href'] = api.url_for(Orders)
+        collection['links'] = [
+                                {'prompt': 'List of all users in the Forum',
+                                'rel': 'users-all', 'href': api.url_for(Users)
+                                }
+            ]
+        collection['template'] = {
+            "data": [
+                {"prompt": "", "name": "order_id",
+                 "value": "", "required": True},
+                {"prompt": "", "name": "timestamp",
+                 "value": "", "required": True},
+                {"prompt": "", "name": "user_nickname",
+                 "value": "", "required": False},
+                {"prompt": "", "name": "sport_id",
+                 "value": "", "required": False}
+            ]
+        }
+        #Create the items
+        items = []
+        for order in orders_db:
+            _orderid = order['orderid']
+            _timestamp = order['timestamp']
+            _url = api.url_for(Order, orderid=_orderid)
+            order = {}
+            order['href'] = _url
+            order['data'] = []
+            value = {'name':'timestamp', 'value': _timestamp}
+            order['data'].append(value)
+            order['links'] = []
+            items.append(order)
+        collection['items'] = items
+
+        #RENDER
+        return Response(json.dumps(envelope), 200,
+                        mimetype=COLLECTIONJSON+";"+FORUM_ORDER_PROFILE)
+
+    def post(self):
+        '''
+        Adds a a new order.
+
+        REQUEST ENTITY BODY:
+         * Media type: Collection+JSON:
+             http://amundsen.com/media-types/collection/
+           - Extensions: template validation and value-types
+             https://github.com/collection-json/extensions
+         * Profile: Forum_Message
+           http://atlassian.virtues.fi: 8090/display/PWP
+           /Exercise+4#Exercise4-Forum_Order
+
+        
+        The body should be a Collection+JSON template.
+        Semantic descriptors used in template: nickname and sport_id.
+
+        RESPONSE STATUS CODE:
+         * Returns 201 if the order has been added correctly.
+           The Location header contains the path of the new order
+         * Returns 400 if the order is not well formed.
+         * Returns 415 if the format of the response is not json
+         * Returns 500 if the order could not be added to database.
+
+        '''
+
+        #Extract the request body. In general would be request.data
+        #Since the request is JSON I use request.get_json
+        #get_json returns a python dictionary after serializing the request body
+        #get_json returns None if the body of the request is not formatted
+        # using JSON. We use force=True since the input media type is not
+        # application/json.
+
+        if COLLECTIONJSON != request.headers.get('Content-Type',''):
+            return create_error_response(415, "UnsupportedMediaType",
+                                         "Use a JSON compatible format")
+        request_body = request.get_json(force=True)
+         #It throws a BadRequest exception, and hence a 400 code if the JSON is
+        #not wellformed
+        try:
+            data = request_body['template']['data']
+            title = None
+            body = None
+            sender = "Anonymous"
+            ipaddress = request.remote_addr
+
+            for d in data:
+                #This code has a bad performance. We write it like this for
+                #simplicity. Another alternative should be used instead.
+                if d['name'] == 'nickname':
+                    nickname = d['value']
+                elif d['name'] == 'sport_id':
+                    sport_id = d['value']
+
+            #CHECK THAT DATA RECEIVED IS CORRECT
+            if not nickname or not sport_id:
+                return create_error_response(400, "Wrong request format",
+                                             "Be sure you include nickname and sport_id")
+        except:
+            #This is launched if either nickname or sport_id does not exist or if
+            # the template.data array does not exist.
+            return create_error_response(400, "Wrong request format",
+                                         "Be sure you include nickname and sport_id")
+        #Create the new order and build the response code'
+        neworderid = g.con.create_order(nickname, sport_id)
+        if not neworderid:
+            return create_error_response(500, "Problem with the database",
+                                         "Cannot access the database")
+
+        #Create the Location header with the id of the order created
+        url = api.url_for(Order, orderid=neworderid)
+
+        #RENDER
+        #Return the response
+        return Response(status=201, headers={'Location': url})
+
+class Order(Resource):
+    '''
+    Resource that represents a single order in the API.
+    '''
+
+    def get(self, orderid):
+        '''
+        Get the order_id, timestamp, user_nickname, 
+		sport_id of a specific order.
+        Returns status code 404 if the orderid does not exist in the database.
+
+        INPUT PARAMETER
+       : param str orderid: The id of the order to be retrieved from the
+            system
+
+        RESPONSE ENTITY BODY:
+         * Media type: application/hal+json:
+             http://stateless.co/hal_specification.html
+         * Profile: Forum_Order
+           http://atlassian.virtues.fi: 8090/display/PWP
+           /Exercise+4#Exercise4-Forum_Order
+
+            Link relations used: 
+
+            Semantic descriptors used: order_id, timestamp, user_nickname,
+        sport_id
+            NOTE: editor should not be included in the output if the database
+            return None.
+
+        RESPONSE STATUS CODE
+         * Return status code 200 if everything OK.
+         * Return status code 404 if the order was not found in the database.
+
+        NOTE:
+         * The attribute order_id is obtained from the column Orders.order_id
+         * The attribute user_nickname is obtained from the column Orders.user_nickname
+         * The attribute sport_id is obtained from the column Orders.sport_id
+        '''
+
+        #PEFORM OPERATIONS INITIAL CHECKS
+        #Get the order from db
+        order_db = g.con.get_order(orderid)
+        if not order_db:
+            return create_error_response(404, "Order does not exist",
+                        "There is no a order with id %s" % orderid)
+
+        #FILTER AND GENERATE RESPONSE
+        #Create the envelope:
+        envelope = {}
+        #Now create the links
+        links = {}
+        envelope["_links"] = links
+
+        #Fill the links
+        _curies = [
+            {
+                "name": "order",
+                "href": FORUM_ORDER_PROFILE + "/{rels}",
+                "templated": True
+            }
+        ]
+        links['curies'] = _curies
+        links['self'] = {'href': api.url_for(Order, orderid=orderid),
+                         'profile': FORUM_ORDER_PROFILE}
+        links['order:edit'] = {'href': api.url_for(Order, orderid=orderid),
+                         'profile': FORUM_ORDER_PROFILE}
+        links['order:delete'] = {'href': api.url_for(Order, orderid=orderid),
+                         'profile': FORUM_ORDER_PROFILE}
+
+        links['collection'] = {'href': api.url_for(Orders),
+                               'profile': FORUM_ORDER_PROFILE,
+                               'type': COLLECTIONJSON}
+        links['order:reply'] = {'href': api.url_for(Order, orderid=orderid),
+                              'profile': FORUM_ORDER_PROFILE}
+
+        #Fill the template
+        envelope['template'] = {
+            "data": [
+                {"prompt": "", "name": "timestamp",
+                 "value": "", "required": True},
+                {"prompt": "", "name": "nickname",
+                 "value": "", "required": True},
+                {"prompt": "", "name": "sport_id",
+                 "value": "", "required": False},
+            ]
+        }
+
+        envelope['nickname'] = order_db['nickname']
+        envelope['timestamp'] = order_db['timestamp']
+        envelope['sport_id'] = order_db['sport_id']
+
+        #RENDER
+        return Response(json.dumps(envelope), 200,
+                        mimetype=HAL+";"+FORUM_MESSAGE_PROFILE)
+
+    def delete(self, orderid):
+        '''
+        Deletes an order from the Forum API.
+
+        INPUT PARAMETERS:
+       : param str orderid: The id of the order to be deleted
+
+        RESPONSE STATUS CODE
+         * Returns 204 if the order was deleted
+         * Returns 404 if the orderid is not associated to any order.
+        '''
+
+        #PERFORM DELETE OPERATIONS
+        if g.con.delete_order(orderid):
+            return '', 204
+        else:
+            #Send error order
+            return create_error_response(404, "Unknown order",
+                                         "There is no a order with id %s" % orderid
+                                        )
+
+class Sports(Resource):
+
+    def get(self):
+        '''
+        Gets a list of all the sports in the database.
+
+        It returns always status code 200.
+
+        RESPONSE ENTITITY BODY:
+        '''
+        #PERFORM OPERATIONS
+        #Create the messages list
+        sports_db = g.con.get_sports()
+
+        #FILTER AND GENERATE THE RESPONSE
+       #Create the envelope
+        envelope = {}
+        collection = {}
+        envelope["collection"] = collection
+        collection['version'] = "1.0"
+        collection['href'] = api.url_for(Sports)
+        collection['template'] = {
+            "data": [
+                {"prompt": "Insert sportname", "name": "sportname",
+                 "value": "", "required": True},
+                {"prompt": "Insert time", "name": "time",
+                 "value": "", "required": False}
+            ]
+        }
+        #Create the items
+        items = []
+        for sport in sports_db:
+            print sport
+            _sportname = sport['sportname']
+            #print _sportname
+            _time = sport['time']
+            #print _time
+
+            _url = api.url_for(Sport, sportnamee=_sportname)
+            sport = {}
+            sport['href'] = _url
+            sport['read-only'] = True
+            sport['data'] = []
+            value = {'sportname': 'sportname', 'value': _sportname}
+            sport['data'].append(value)
+            value = {'name': 'time', 'value': _time}
+            sport['data'].append(value)
+
+            items.append(sport)
+        collection['items'] = items
+        #RENDER
+        return Response(json.dumps(envelope), 200,
+                        mimetype=COLLECTIONJSON+";"+FORUM_USER_PROFILE)
 
 
 
+    def post(self):
+       
+        request_body = request.get_json(force=True)
+
+        if COLLECTIONJSON != request.headers.get('Content-Type', ''):
+            return create_error_response(415, "UnsupportedMediaType sad",
+                                         "Use a JSON compatible format")
+        #PARSE THE REQUEST:
+        if not request_body:
+            return create_error_response(415, "Unsupported Media Type 1",
+                                         "Use a JSON compatible format ba",
+                                         )
+        #Get the request body and serialize it to object
+        #We should check that the format of the request body is correct. Check
+        #That mandatory attributes are there.
+
+        data = request_body['template']['data']
+        _sportname = None
+        _time = None
+
+
+        for d in data:
+        #This code has a bad performance. We write it like this for
+        #simplicity. Another alternative should be used instead. E.g.
+        #generation expressions
+            
+            if d['name'] == "sportname":
+                _sportname = d['value']
+            elif d['name'] == "time":
+                _time = d['value']
+        
+        print _sportname
+        try:
+            sportname = g.con.append_sport(_sportname, _time)
+            print "here we have append sport name "
+        except ValueError:
+            return create_error_response(400, "Wrong request format",
+                                         "Be sure you include all"
+                                         " mandatory properties"
+                                        )
+
+        #CREATE RESPONSE AND RENDER
+        if sportname:
+            return Response(
+                status=201,
+                headers={"Location": api.url_for(Sport,
+                                                 sportname=sportname)})
+        #Already sport in the database
+        else:
+            return create_error_response(409, "Sport in database",
+                                         "sportname: %s already in use" % sportname)
+
+class Sport(Resource):
+    '''
+    Sport Resource.
+    '''
+
+    def get(self, sportname):
+        
+        #PERFORM OPERATIONS
+        sport_db = g.con.get_sport(sportname)
+        if not sport_db:
+            return create_error_response(404, "Unknown sport",
+                                         "There is no a sport with sportname %s"
+                                         % sportname)
+
+        #FILTER AND GENERATE RESPONSE
+        #Create the envelope:
+        envelope = {}
+        #Now create the links
+        links = {}
+        envelope["_links"] = links
+
+        #Fill the links
+        _curies = [
+            {
+                "name": "sport",
+                "href": FORUM_SPORT_PROFILE + "/{rels}",
+                "templated": True
+            }
+        ]
+        links['curies'] = _curies
+        links['self'] = {'href': api.url_for(Sport, sportname=sportname),
+                         'profile': FORUM_SPORT_PROFILE}
+        links['collection'] = {'href': api.url_for(Sports),
+                               'profile': FORUM_SPORT_PROFILE,
+                               'type': COLLECTIONJSON}
+        links['sport:delete'] = {
+            'href': api.url_for(Sport, sportname=sportname),
+            'profile': FORUM_SPORT_PROFILE
+        }
+        envelope['sportname'] = sportname
+        envelope['time'] = sport_db['time']
+
+        #RENDER
+        return Response(json.dumps(envelope), 200,
+                        mimetype=HAL+";"+FORUM_SPORT_PROFILE)
+
+    def delete(self, sportname):
+        '''
+        Delete a sport in the system.
+
+       : param str sportname: sportname of the required sport.
+
+        RESPONSE STATUS CODE:
+         * If the sport is deleted returns 204.
+         * If the sportname does not exist return 404
+        '''
+
+        #PEROFRM OPERATIONS
+        #Try to delete the sport. If it could not be deleted, the database
+        #returns None.
+        if g.con.delete_sport(sportname):
+            #RENDER RESPONSE
+            return '', 204
+        else:
+            #GENERATE ERROR RESPONSE
+            return create_error_response(404, "Unknown sport",
+                                         "There is no a sport with sportname %s"
+                                         % sportname)
+
+										
+										
+										
 class Users(Resource):
 
     def get(self):
@@ -364,18 +817,30 @@ class User(Resource):
             return create_error_response(404, "Unknown user",
                                          "There is no a user with nickname %s"
                                          % nickname)
-
-
+										 
 #Add the Regex Converter so we can use regex expressions when we define the
 #routes
 app.url_map.converters['regex'] = RegexConverter
 
 
 #Define the routes
+
+api.add_resource(Orders, '/forum/api/orders/',
+                 endpoint='orders')
+api.add_resource(Order, '/forum/api/orders/<regex("order-\d+"):orderid>/',
+                 endpoint='order')
+api.add_resource(User_public, '/forum/api/users/<nickname>/public_profile/',
+                 endpoint='public_profile')
+api.add_resource(User_restricted, '/forum/api/users/<nickname>/restricted_profile/',
+                 endpoint='restricted_profile')
 api.add_resource(Users, '/forum/api/users/',
                  endpoint='users')
 api.add_resource(User, '/forum/api/users/<nickname>/',
                  endpoint='user')
+api.add_resource(Sports, '/forum/api/sports/',
+                 endpoint='sports')
+api.add_resource(Sport, '/forum/api/sports/'\d+':sportid>/',
+                 endpoint='sport')				 
 
 
 
