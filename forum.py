@@ -4,7 +4,7 @@ from forum.resources import app as forum
 from forum_admin.application import app as forum_admin
 
 application = DispatcherMiddleware(forum, {
-    '/forum/admin': forum_admin
+    '/forum_admin': forum_admin
 })
 if __name__ == '__main__':
     run_simple('localhost', 5000, application,
