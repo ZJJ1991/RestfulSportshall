@@ -533,7 +533,7 @@ class Sport(Resource):
             'href': api.url_for(Sport, sportname=sportname),
         }
         envelope['sportname'] = sportname
-        envelope['time'] = sport_db['sport time']
+        envelope['time'] = sport_db['time']
 
         #RENDER
         return Response(json.dumps(envelope), 200,
@@ -634,9 +634,9 @@ class Users(Resource):
             _lastlogin = user['lastLogin']
             _timesviewed = user['timesviewed']
             '''
-            #_url = api.url_for(User, nickname= _nickname)
+            _url = api.url_for(User, nickname=_nickname)
             user = {}
-            #user['href'] = _url
+            user['href'] = _url
             user['read-only'] = True
             user['data'] = []
             value = {'name': 'nickname', 'value': _nickname}

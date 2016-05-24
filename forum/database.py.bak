@@ -410,7 +410,6 @@ class Connection(object):
         sport_id = row['sport_id']
         return {'sport id': sport_id,
 		'sport name': row['sportname'],
-		'sport time': row['time'],
 		'sporthall number': row['hallnumber'],
 		'note': row['note']
 		}
