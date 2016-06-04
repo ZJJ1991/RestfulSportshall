@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html >
+  <head>
+    <meta charset="UTF-8">
+    <title>Login Form</title>
+    <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+    <script type="text/javascript" src="js_login/index.js"></script>
+    <script type="text/javascript" src="jquery.js"></script>
+    <link rel="stylesheet" href="css_login/style.css">
+    
+    
+    
+  </head>
+
+  <body>
+
+    <div class="login-page">
+  <div class="form">
+    <form class="register-form" action="#">
+      <input id="username" type="text" placeholder="name"/>
+      <input id="password" type="password" placeholder="password"/>
+      <input id="emailaddress" type="text" placeholder="email address"/>
+      <button onClick="register()">create</button>
+      <p class="message">Already registered? <a href="#">Sign In</a></p>
+    </form>
+    <form class="login-form" action="#">
+      <input id="user_name" type="text" placeholder="username"/>
+      <input id="pass_word" type="password" placeholder="password"/>
+      <button onclick="login()">login</button>
+      <p class="message">Not registered? <a href="#">Create an account</a></p>
+    </form>
+
+  </div>
+</div>
+
+<script>
+
+$('.message a').click(function(){
+   $('form').animate({height: "toggle", opacity: "toggle"}, "slow");
+});
+
+function login()
+  {
+    var user_name = document.getElementById("user_name").value;
+    var pass_word = document.getElementById("pass_word").value;
+
+
+    $.ajax({
+        url: "http://localhost:5000/forum/api/login/"+user_name+"/"+pass_word+"/",
+        type: 'GET',
+        success: function(data) {
+		   if (data == "successfully login")
+			{
+			window.localStorage.setItem("username", user_name);
+			window.localStorage.setItem("password", pass_word);
+			alert("login success");
+			window.location="http://localhost:5000/forum_admin/index.html";
+			}
+		},
+    });
+  }
+  
+function register()
+	{
+		var username = document.getElementById("username").value;
+		console.log("the username registered is: ", username);
+		var password = document.getElementById("password").value;
+		console.log("the password registered is: ", password);
+		var emailaddress = document.getElementById("emailaddress").value;
+		console.log("the emailaddress registered is: ", emailaddress);
+
+		data =  '';
+		data += '{"template":{';
+		data += '"data":[';
+		data += '{"required": true, "prompt": "Insert user nickname", "name": "nickname", "value": "'+ username +'"},';
+		data += '{"required": true, "prompt": "Insert user password", "name": "password", "value": "'+ password +'"},';
+		data += '{"required": true, "prompt": "Insert user regDate", "name": "regDate", "value": "1991-232-12"},';
+		data += '{"required": false, "prompt": "Insert user address", "name": "address", "value": "1d246"},';
+		data += '{"required": false, "prompt": "Insert user signature", "name": "signature", "value": "asdaxzadfgf"},';
+		data += '{"required": true, "prompt": "Insert user avatar", "name": "avatar", "value": "aasd"},';
+		data += '{"required": true, "prompt": "Insert user birthday", "name": "birthday", "value": "24315"},';
+		data += '{"required": true, "prompt": "Insert user email", "name": "email", "value": "'+ emailaddress +'"},';
+		data += '{"required": true, "prompt": "Insert user website", "name": "website", "value": "asdas.com"},';
+		data += '{"required": true, "prompt": "Insert user familyName", "name": "familyName", "value": "malesa"},';
+		data += '{"required": true, "prompt": "Insert user gender", "name": "gender", "value": "male"},';
+		data += '{"required": true, "prompt": "Insert user givenName", "name": "givenName", "value": "asdasdada"}';
+		data += ']';
+		data += '}';
+		data += '}';
+
+		$.ajax(
+		{
+			url: "http://localhost:5000/forum/api/users/",
+			data: data,
+			type: 'POST',
+			headers: { 
+			'Content-Type': 'application/vnd.collection+json' 
+		},
+			success: function(json){
+					console.log(json);
+					window.localStorage.setItem("username", username);
+					window.localStorage.setItem("password", password);
+					alert('user has been created');
+					window.location="http://localhost:5000/forum_admin/index.html";
+			},
+			error: function(xhr, ajaxOptions, thrownError){
+					alert('the username has been used');
+			}
+		});
+	}
+  
+</script>
+
+    
+    
+  </body>
+</html>

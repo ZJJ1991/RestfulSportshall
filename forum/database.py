@@ -426,7 +426,7 @@ class Connection(object):
             ``time``
 
         '''
-        return {'sportname': row['sportname'], 'time': row['time'], 'hallnumber': row['hallnumber'], 'note': row['note']}
+        return {'sport_id': row['sport_id'], 'sportname': row['sportname'], 'time': row['time'], 'hallnumber': row['hallnumber'], 'note': row['note']}
 
 		
     #Helpers for orders
@@ -452,9 +452,10 @@ class Connection(object):
         order_id = 'order-' + str(row['order_id'])
         user = row['user_nickname']
         sport = row['sport_id']
+        sportname = row['sportname']
         timestamp = row['timestamp']
         order = {'orderid': order_id, 'usernickname': user,'order sport id': sport,
-                   'timestamp': timestamp}
+                   'sportname': sportname, 'timestamp': timestamp}
         return order
 
     def _create_order_list_object(self, row):
@@ -471,8 +472,9 @@ class Connection(object):
         order_id = 'order-' + str(row['order_id'])
         user = row['user_nickname']
         sport_id = row['sport_id']
+        sport_name = row['sportname']
         timestamp = row['timestamp']
-        order = {'order_id': order_id, 'user_nickname': user,'timestamp': timestamp, 'sport_id': sport_id}
+        order = {'order_id': order_id, 'user_nickname': user,'timestamp': timestamp, 'sport_id': sport_id, 'sportname': sport_name}
         return order
 
     #Helpers for users
@@ -543,7 +545,7 @@ class Connection(object):
             ``nickname``
 
         '''
-        return {'registrationdate': row['regDate'], 'nickname': row['nickname']}
+        return {'nickname': row['nickname'], 'regDate': row['regDate'], 'lastLogin': row['lastLogin'], 'timesviewed': row['timesviewed']}
 
     #API ITSELF
 	
@@ -725,14 +727,14 @@ class Connection(object):
         query3 ='SELECT * FROM orders'
         cur.execute(query3)
         rows = cur.fetchall()
-        row = cur.fetchone()		
+        row = cur.fetchone()
         for row in rows:
             if int(_timestamp)-int(row["timestamp"]) > 1000*3600*24*7:
 				order_id=row["order_id"]
 				query4 = 'DELETE FROM orders WHERE order_id = ?'
 				pvalue4 = (order_id,)
 				cur.execute(query4,pvalue4)
-				self.con.commit()			
+				self.con.commit()
         query2 = 'SELECT sportname from sports WHERE sport_id = ?'
         pvalue2 = (sport_id,)
         cur.execute(query2,pvalue2)
@@ -877,7 +879,7 @@ class Connection(object):
           #SQL Statement for deleting the sport information
         query = 'DELETE FROM sports WHERE sportname = ?'
         #Activate foreign key support
-        self.set_foreign_keys_support()
+        #self.set_foreign_keys_support()
         #Cursor and row initialization
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
@@ -1029,7 +1031,7 @@ class Connection(object):
         row = cur.fetchone()
         return self._create_user_object(row)
 
-    def delete_user(self, nickname):
+    def delete_user(self, nickname, password):
         '''
         Remove all user information of the user with the nickname passed in as
         argument.
@@ -1041,14 +1043,14 @@ class Connection(object):
         '''
         #Create the SQL Statements
           #SQL Statement for deleting the user information
-        query = 'DELETE FROM users WHERE nickname = ?'
+        query = 'DELETE FROM users WHERE nickname = ? And password = ?'
         #Activate foreign key support
-        self.set_foreign_keys_support()
+        #self.set_foreign_keys_support()
         #Cursor and row initialization
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
         #Execute the statement to delete
-        pvalue = (nickname,)
+        pvalue = (nickname, password)
         cur.execute(query, pvalue)
         self.con.commit()
         #Check that it has been deleted
@@ -1199,15 +1201,15 @@ class Connection(object):
           #SQL Statement for extracting the userid given a nickname
         query1 = 'SELECT user_id from users WHERE nickname = ?'
           #SQL Statement to create the row in  users table
-        query2 = 'INSERT INTO users(nickname,regDate,lastLogin,timesviewed)\
-                  VALUES(?,?,?,?)'
+        query2 = 'INSERT INTO users(nickname,password,regDate,lastLogin,timesviewed)\
+                  VALUES(?,?,?,?,?)'
           #SQL Statement to create the row in user_profile table
-        query3 = 'INSERT INTO users_profile (user_id, firstname,lastname, \
+        query3 = 'INSERT INTO users_profile (firstname,lastname, \
                                              email,website, \
                                              picture,mobile, \
                                              skype,age,residence, \
                                              gender,signature,avatar)\
-                  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)'
+                  VALUES (?,?,?,?,?,?,?,?,?,?,?,?)'
         
         #temporal variables for user table
         #timestamp will be used for lastlogin and regDate.
@@ -1218,6 +1220,8 @@ class Connection(object):
         r_profile = user['restricted_profile']
         print p_profile
         print r_profile
+        _password = p_profile.get('password')
+        print _password
         _regDate = p_profile.get('regDate')
         print _regDate
         _signature = p_profile.get('signature', None)
@@ -1242,7 +1246,7 @@ class Connection(object):
         _age = None
         _residence = None
         #Activate foreign key support
-        self.set_foreign_keys_support()
+        #self.set_foreign_keys_support()
         #Cursor and row initialization
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
@@ -1255,13 +1259,13 @@ class Connection(object):
         if row is None:
             #Add the row in users table
             # Execute the statement
-            pvalue = (nickname, _regDate, timestamp, timesviewed)
+            pvalue = (nickname, _password, _regDate, timestamp, timesviewed)
             cur.execute(query2, pvalue)
             #Extrat the rowid => user-id
             lid = cur.lastrowid
             #Add the row in users_profile table
             # Execute the statement
-            pvalue = (lid, _firstname, _lastname, _email, _website,
+            pvalue = (_firstname, _lastname, _email, _website,
                       _picture, _mobile, _skype, _age, _residence, _gender,
                       _signature, _avatar)
             cur.execute(query3, pvalue)
@@ -1318,3 +1322,16 @@ class Connection(object):
         :return: True if the user is in the database. False otherwise
         '''
         return self.get_user_id(nickname) is not None
+
+    def login(self, nickname, password):
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        stmnt = 'select * from users where nickname=? and password=?'
+        pvalue = (nickname,password)
+        cur.execute(stmnt, pvalue)
+        row = cur.fetchone()
+        if row is None:
+            return False
+            print "login failed"
+        else:
+			return True

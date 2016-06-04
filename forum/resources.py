@@ -105,32 +105,7 @@ class Orders(Resource):
     Resource Orders implementation
     '''
     def get(self):
-        '''
-        Get all orders.
 
-        INPUT parameters:
-          None
-
-        RESPONSE ENTITY BODY:
-        * Media type: Collection+JSON:
-             http://amundsen.com/media-types/collection/
-           - Extensions: template validation and value-types
-             https://github.com/collection-json/extensions
-         * Profile: Forum_order
-           http://atlassian.virtues.fi: 8090/display/PWP
-           /Exercise+4#Exercise4-Forum_order
-
-        Link relations used in items: None
-        Semantic descriptions used in items: headline
-        Link relations used in links: users-all
-        Semantic descriptors used in template: order_id, timestamp, user_nickname,
-        sport_id.
-
-        NOTE:
-         * The attribute order_id is obtained from the column Orders.order_id
-         * The attribute user_nickname is obtained from the column Orders.user_nickname
-         * The attribute sport_id is obtained from the column Orders.sport_id
-        '''
         #Extract Orders from database
         orders_db = g.con.get_orders()
 
@@ -154,18 +129,33 @@ class Orders(Resource):
                 {"prompt": "", "name": "user_nickname",
                  "value": "", "required": False},
                 {"prompt": "", "name": "sport_id",
-                 "value": "", "required": False}
+                 "value": "", "required": False},
+                {"prompt": "", "name": "sport_name",
+                 "value": "", "required": True},
+                {"prompt": "", "name": "timestamp",
+                 "value": "", "required": True} 
             ]
         }
         #Create the items
         items = []
         for order in orders_db:
             _orderid = order['order_id']
+            _usernickname = order['user_nickname']
+            _sportid = order['sport_id']
+            _sportname = order['sportname']
             _timestamp = order['timestamp']
             _url = api.url_for(Order, orderid=_orderid)
             order = {}
             order['href'] = _url
             order['data'] = []
+            value = {'name':'order_id', 'value': _orderid}
+            order['data'].append(value)
+            value = {'name':'user_nickname', 'value': _usernickname}
+            order['data'].append(value)
+            value = {'name':'sport_id', 'value': _sportid}
+            order['data'].append(value)
+            value = {'name':'sportname', 'value': _sportname}
+            order['data'].append(value)
             value = {'name':'timestamp', 'value': _timestamp}
             order['data'].append(value)
             order['links'] = []
@@ -225,13 +215,14 @@ class Orders(Resource):
             for d in data:
                 #This code has a bad performance. We write it like this for
                 #simplicity. Another alternative should be used instead.
-                if d['name'] == 'nickname':
+                if d['name'] == 'user_nickname':
                     nickname = d['value']
+                    print nickname
                 elif d['name'] == 'sport_id':
                     sport_id = d['value']
-
+                    print sport_id
             #CHECK THAT DATA RECEIVED IS CORRECT
-            if not nickname or not sport_id:
+            if not user_nickname or not sport_id:
                 return create_error_response(400, "Wrong request format",
                                              "Be sure you include nickname and sport_id")
         except:
@@ -240,7 +231,7 @@ class Orders(Resource):
             return create_error_response(400, "Wrong request format",
                                          "Be sure you include nickname and sport_id")
         #Create the new order and build the response code'
-        neworderid = g.con.create_order(nickname, sport_id)
+        neworderid = g.con.create_order(user_nickname, sport_id)
         if not neworderid:
             return create_error_response(500, "Problem with the database",
                                          "Cannot access the database")
@@ -253,44 +244,9 @@ class Orders(Resource):
         return Response(status=201, headers={'Location': url})
 
 class Order(Resource):
-    '''
-    Resource that represents a single order in the API.
-    '''
 
     def get(self, orderid):
-        '''
-        Get the order_id, timestamp, user_nickname, 
-		sport_id of a specific order.
-        Returns status code 404 if the orderid does not exist in the database.
-
-        INPUT PARAMETER
-       : param str orderid: The id of the order to be retrieved from the
-            system
-
-        RESPONSE ENTITY BODY:
-         * Media type: application/hal+json:
-             http://stateless.co/hal_specification.html
-         * Profile: Forum_Order
-           http://atlassian.virtues.fi: 8090/display/PWP
-           /Exercise+4#Exercise4-Forum_Order
-
-            Link relations used: 
-
-            Semantic descriptors used: order_id, timestamp, user_nickname,
-        sport_id
-            NOTE: editor should not be included in the output if the database
-            return None.
-
-        RESPONSE STATUS CODE
-         * Return status code 200 if everything OK.
-         * Return status code 404 if the order was not found in the database.
-
-        NOTE:
-         * The attribute order_id is obtained from the column Orders.order_id
-         * The attribute user_nickname is obtained from the column Orders.user_nickname
-         * The attribute sport_id is obtained from the column Orders.sport_id
-        '''
-
+        
         #PEFORM OPERATIONS INITIAL CHECKS
         #Get the order from db
         order_db = g.con.get_order(orderid)
@@ -405,6 +361,7 @@ class Sports(Resource):
         items = []
         for sport in sports_db:
             print sport
+            _sportid = sport['sport_id']
             _sportname = sport['sportname']
             #print _sportname
             _time = sport['time']
@@ -416,7 +373,9 @@ class Sports(Resource):
             #sport['href'] = _url
             sport['read-only'] = True
             sport['data'] = []
-            value = {'sportname': 'sportname', 'value': _sportname}
+            value = {'name': 'sport_id', 'value': _sportid}
+            sport['data'].append(value)
+            value = {'name': 'sportname', 'value': _sportname}
             sport['data'].append(value)
             value = {'name': 'time', 'value': _time}
             sport['data'].append(value)
@@ -622,13 +581,13 @@ class Users(Resource):
         for user in users_db:
             print user
             _nickname = user['nickname']
-            #print _nickname
-            _registrationdate = user['registrationdate']
-            #print _registrationdate
-            #_lastlogin = user['lastLogin']
-            #print _lastlogin
-            #_timesviewed = user['timesviewed']
-            #print _timesviewed
+            print _nickname
+            _registrationdate = user['regDate']
+            print _registrationdate
+            _lastlogin = user['lastLogin']
+            print _lastlogin
+            _timesviewed = user['timesviewed']
+            print _timesviewed
             '''
             _registrationdate = user['regDate']
             _lastlogin = user['lastLogin']
@@ -642,9 +601,9 @@ class Users(Resource):
             value = {'name': 'nickname', 'value': _nickname}
             user['data'].append(value)
             #value = {'name': 'lastLogin', 'value': _lastlogin}
-            user['data'].append(value)
+            #user['data'].append(value)
             #value = {'name': 'timesviewed', 'value': _timesviewed}
-            user['data'].append(value)
+            #user['data'].append(value)
             '''
             value = {'name': 'regDate', 'value': _registrationdate}
             user['data'].append(value)
@@ -653,7 +612,7 @@ class Users(Resource):
             value = {'name': 'timesviewed', 'value': _timesviewed}
             user['data'].append(value)
             '''
-            value = {'name': 'nickname', 'value': _nickname}
+            value = {'name': 'regDate', 'value': _registrationdate}
             user['data'].append(value)
             items.append(user)
         collection['items'] = items
@@ -682,6 +641,7 @@ class Users(Resource):
     
         data = input['template']['data']
         _nickname = None
+        _password = None
         _regDate = None
         _lastLogin = None
         _timeviewed = None
@@ -702,6 +662,9 @@ class Users(Resource):
             if d['name'] == "nickname":
                 _nickname = d['value']
                 print _nickname
+            if d['name'] == "password":
+                _password = d['value']
+                print _password
             if d['name'] == "regDate":
                 _regDate = d['value']
                 print _regDate
@@ -742,6 +705,7 @@ class Users(Resource):
                                                Try another one " % _nickname)
         
         user =  {'public_profile':{
+                  'password': _password,
                   'regDate': _regDate,
                   'signature': _signature,
                   'avatar': _avatar},
@@ -818,7 +782,10 @@ class User(Resource):
         return Response(json.dumps(envelope), 200,
                         mimetype=HAL+";"+FORUM_USER_PROFILE)
 
-    def delete(self, nickname):
+						
+						
+class deleteUser(Resource):
+    def delete(self, nickname, password):
         '''
         Delete a user in the system.
 
@@ -832,15 +799,38 @@ class User(Resource):
         #PEROFRM OPERATIONS
         #Try to delete the user. If it could not be deleted, the database
         #returns None.
-        if g.con.delete_user(nickname):
+        if g.con.delete_user(nickname, password):
             #RENDER RESPONSE
-            return '', 204
+            return '', 200
         else:
             #GENERATE ERROR RESPONSE
             return create_error_response(404, "Unknown user",
-                                         "There is no a user with nickname %s"
+                                         "There is no user with nickname %s"
                                          % nickname)
- 
+
+
+
+
+class Login(Resource):
+
+    def get(self, nickname, password):
+        if g.con.login(nickname, password):
+            return 'successfully login', 200
+        else:
+            return create_error_response(404, "Wrong info",
+                                         "The username and password do not match"
+                                         )
+
+class File(Resource):
+
+	def get(self, text):
+		file = open("D:/DS_project/Node_1/forum_admin/static/data.txt", "w")
+		file.writelines(text)
+		file.close()
+		return 'successfully login', 200
+		
+		
+		
 #Add the Regex Converter so we can use regex expressions when we define the
 #routes
 app.url_map.converters['regex'] = RegexConverter
@@ -856,11 +846,16 @@ api.add_resource(Users, '/forum/api/users/',
                  endpoint='users')
 api.add_resource(User, '/forum/api/users/<nickname>/',
                  endpoint='user')
+api.add_resource(deleteUser, '/forum/api/deleteuser/<nickname>/<password>/',
+                 endpoint='deleteuser')
+api.add_resource(Login, '/forum/api/login/<nickname>/<password>/',
+                 endpoint='login')
 api.add_resource(Sports, '/forum/api/sports/',
                  endpoint='sports')
 api.add_resource(Sport, '/forum/api/sports/<sportname>/',
                  endpoint='sport') 
-
+api.add_resource(File, '/forum/api/files/<text>/',
+                 endpoint='file') 
 
 
 #Redirect profile
