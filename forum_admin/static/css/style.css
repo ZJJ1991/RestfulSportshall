@@ -48,18 +48,19 @@ body {
     width: 100%;
     float: left;
     margin: 0 0 40px;
+	font-size:small;
  }
 
  .maincontent{
-	 background: #fff;
-	 box-shadow: 0 2rem 2rem rgba(0, 0, 0, 0.15);
+	background: #fff;
+	box-shadow: 0 2rem 2rem rgba(0, 0, 0, 0.15);
     border-radius: 0 0 15px 15px;
     margin-top: 0;
     float: left;
 	margin-left: 27%;
-	 width: 940px;
+	width: 940px;
 	padding: 40px;
-	min-height: 430px;
+	min-height: 520px;
  }
  
 .commands {

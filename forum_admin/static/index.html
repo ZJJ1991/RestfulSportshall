@@ -24,8 +24,8 @@
 
   
   <div id="intro">
-		<p style='position:relative;  top:-20px' ><font size="5" face="arial" ><b>Forum administration panel</b></font></p>
-		<p style='position:relative;  top:-15px' >Click on a nickname in the sidebar to edit/delete a user info. Press<b> "Add User"</b> to add a new user.</p>
+		<p style='position:relative;  top:-20px' ><font size="5.5" face="arial" ><b>Forum administration panel</b></font></p>
+		<p style='position:relative;  top:-8px' ><font size="2.5" face="arial" >Click on a nickname in the sidebar to edit/delete a user info. Press<b> "Add User"</b> to add a new user.</font></p>
 	</div>
   
   	<div id = "mainContent" class="maincontent" >
@@ -39,9 +39,9 @@
 							
 						</div>
 						<p id="userHeader">  
-							<a id="username" href="#" onClick="getUsers()">username</a>
+							<a id="username" >username</a>
 						</p>
-						<P id="user_panel"></P>
+						<ul id="user_panel"></ul>
 					</form> 
 				</div>
     </div>
@@ -54,9 +54,9 @@
 						
 						</div>
 						<p id="sportHeader">  
-							<a class="sportname" id="sportname" href="#" onClick="getSports()">sportname</a>
+							<a class="sportname" id="sportname"  >sportname</a>
 						</p>
-						<P id="sport_panel"></P>
+						<ul id="sport_panel"></ul>
 					</form> 
 				</div>
 	</div>
@@ -69,9 +69,9 @@
 						
 						</div>
 						<p id="orderHeader">  
-							<a class="ordername" id="ordername" href="#" onClick="getOrders()">ordername</a>
+							<a class="ordername" id="ordername"  >ordername</a>
 						</p>
-						<P id="order_panel"></P>
+						<ul id="order_panel"></ul>
 					</form> 
 				</div>
 	</div>
@@ -127,23 +127,23 @@
 	
       <div class="item item-3">
         <a target="_blank" class="icon-box item__icon">
-		  <img src="image/user.png"/>
+		  <img src="image/user.png" onClick="getUsers()"/>
         </a>
-        <a  id="user_name" target="_blank" class="item__name"/>
+        <a  id="user_name" target="_blank" class="item__name" onClick="getUsers()" >Users</a>
       </div>
 	  
       <div class="item item-2">
         <div class="item__icon m--img">
-          <img src="image/sports.png"/>
+          <img src="image/sports.png" onClick="getSports()"/>
         </div>
-        <a  target="_blank" class="item__name">Sports</a>
+        <a  target="_blank" class="item__name" onClick="getSports()">Sports</a>
       </div>
 	  
       <div class="item item-1">
         <div class="item__icon m--img">
-          <img src="image/order.jpg" />
+          <img src="image/order.jpg" onClick="getOrders()" />
         </div>
-        <span class="item__name">Orders</span>
+       <a  target="_blank" class="item__name" onClick="getOrders()">Orders</a>
       </div>
     </div>
   </div>
@@ -172,6 +172,9 @@
 			writeToFile('test get users');
 			users = data.collection.items;
 			line = line + '\n';
+			$("#existingUserData").show();
+			$("#existingSportsData").hide();
+			$("#existingOrdersData").hide();
 			for (var i=0; i < users.length; i++){
 			var user = users[i];
 			//Extract the username by getting the data values. Once obtained
@@ -180,6 +183,7 @@
 			//Data format example:
 			//  [ { "name" : "username", "value" : "Mystery" },
 			//    { "name" : "registrationdate", "value" : "2014-10-12" } ]
+			
 			var user_data = user.data;
 			for (var j=0; j<user_data.length;j++){
 				if (user_data[j].name=="nickname"){
@@ -210,6 +214,9 @@
 				console.log("sport data: ", data);
 				sports = data.collection.items;
 				console.log("sports items: ", sports);
+				$("#existingUserData").hide();
+				$("#existingSportsData").show();
+				$("#existingOrdersData").hide();
 				for (var i=0; i < sports.length; i++){
 				var sport = sports[i];
 				//Extract the username by getting the data values. Once obtained
@@ -249,6 +256,9 @@
 				console.log("sport data: ", data);
 				sports = data.collection.items;
 				console.log("sports items: ", sports);
+				$("#existingUserData").hide();
+				$("#existingSportsData").show();
+				$("#existingOrdersData").hide();
 				for (var i=0; i < sports.length; i++){
 				var sport = sports[i];
 				//Extract the username by getting the data values. Once obtained
@@ -285,6 +295,9 @@
 			}).done(function(data){
 				console.log("data: ", data);
 				orders = data.collection.items;
+				$("#existingUserData").hide();
+				$("#existingSportsData").hide();
+				$("#existingOrdersData").show();
 				for (var i=0; i < orders.length; i++){
 				var order = orders[i];
 				//Extract the username by getting the data values. Once obtained
@@ -334,6 +347,9 @@
 				console.log("data: ", data);
 				alert("the Orders Node is out of service(Notification from Central Node)");
 				orders = data.collection.items;
+				$("#existingUserData").hide();
+				$("#existingSportsData").hide();
+				$("#existingOrdersData").show();
 				for (var i=0; i < orders.length; i++){
 				var order = orders[i];
 				//Extract the username by getting the data values. Once obtained
@@ -400,11 +416,11 @@
 	function display_create_user_form(){
 		var str = '';
 		str += '<h3>Create new user</h3>';
-		str += '<div>Username:      <input type="" id="input_nickname" /></div>';
-		str += '<div>Password:      <input type="" id="input_password" /></div>';
-		str += '<div>Date of birth: <input type="" id="input_dateofbirth" /></div>';
-		str += '<div>Email:         <input type="" id="input_email" /></div>';
-		str += '<div>Gender:        <input type="" id="input_gender" /></div>';
+		str += '<div class="form-item"><label>Username:</label><input type="" id="input_nickname" /></div>';
+		str += '<div class="form-item"><label>Password:</label><input type="" id="input_password" /></div>';
+		str += '<div class="form-item"><label>Date of birth:</label><input type="" id="input_dateofbirth" /></div>';
+		str += '<div class="form-item"><label>Email:</label><input type="" id="input_email" /></div>';
+		str += '<div class="form-item"><label>Gender:</label><input type="" id="input_gender" /></div>';
 		str += '<div><button onclick="create_new_user()">Create new user</button></div>';
 		$.facebox(str);
 	}
@@ -412,8 +428,8 @@
     function display_delete_user_form(){
 		var str = '';
 		str += '<h3>Delete User</h3>';
-		str += '<div>Username: <input type="" id="delete_nickname" /></div>';
-		str += '<div>Password: <input type="" id="delete_password" /></div>';
+		str += '<div class="form-item"><label>Username:</label><input type="" id="delete_nickname" /></div>';
+		str += '<div class="form-item"><label>Password:</label><input type="" id="delete_password" /></div>';
 		str += '<div><button onclick="delete_user();">Delete User</button></div>';
 		$.facebox(str);
     }
@@ -424,10 +440,10 @@
 	function display_create_sport_form(){
 		var str = '';
 		str += '<h3>Create new sport</h3>';
-		str += '<div>Sport Name:      <input type="" id="input_sportname" /></div>';
-		str += '<div>Time:      <input type="" id="input_time" /></div>';
-		str += '<div>Hall Number: <input type="" id="input_hallnumber" /></div>';
-		str += '<div>Note:         <input type="" id="input_note" /></div>';
+		str += '<div class="form-item"><label>Sport Name:</label><input type="" id="input_sportname" /></div>';
+		str += '<div class="form-item"><label>Time:</label><input type="" id="input_time" /></div>';
+		str += '<div class="form-item"><label>Hall Number:</label><input type="" id="input_hallnumber" /></div>';
+		str += '<div class="form-item"><label>Note:</label><input type="" id="input_note" /></div>';
 		str += '<div><button onclick="create_new_sport()">Create new sport</button></div>';
 		$.facebox(str);
 	}
