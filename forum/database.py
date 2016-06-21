@@ -1113,16 +1113,29 @@ class Connection(object):
         user_id = None
         p_profile = user['public_profile']
         r_profile = user['restricted_profile']
+        print p_profile
+        print r_profile
+        _signature = p_profile.get('signature', None)
+        print _signature
+        _avatar = p_profile.get('avatar', None)
+        print _avatar
         _firstname = r_profile.get('firstname', None)
+        print _firstname
         _lastname = r_profile.get('lastname', None)
+        print _lastname
         _email = r_profile.get('email', None)
         _website = r_profile.get('website', None)
-        _picture = r_profile.get('picture', None)
+        '''_picture = r_profile.get('picture', None)
         _mobile = r_profile.get('mobile', None)
         _skype = r_profile.get('skype', None)
         _age = r_profile.get('age', None)
-        _residence = r_profile.get('residence', None)
+        _residence = r_profile.get('residence', None)'''
         _gender = r_profile.get('gender', None)
+        _picture = None
+        _mobile = None
+        _skype = None
+        _age = None
+        _residence = None
         _signature = p_profile.get('signature', None)
         _avatar = p_profile.get('avatar', None)
         #Activate foreign key support
