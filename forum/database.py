@@ -169,10 +169,10 @@ class Engine(object):
         '''
         keys_on = 'PRAGMA foreign_keys = ON'
         stmnt = 'CREATE TABLE orders(order_id INTEGER PRIMARY KEY AUTOINCREMENT, \
-                    user_nickname TEXT, sport_id INTEGER,sportname TEXT, timestamp INTEGER, \
-                    FOREIGN KEY(sport_id) REFERENCES sports(sport_id) \
+                    nickname TEXT,sportname TEXT, timestamp INTEGER, \
+                    FOREIGN KEY(sportname) REFERENCES sports(sportname) \
                     ON DELETE CASCADE, \
-                    FOREIGN KEY (user_nickname) \
+                    FOREIGN KEY (nickname) \
                     REFERENCES users(nickname) ON DELETE SET NULL)'
         con = sqlite3.connect(self.db_path)
         with con:
@@ -201,8 +201,8 @@ class Engine(object):
         '''
         keys_on = 'PRAGMA foreign_keys = ON'
         stmnt = 'CREATE TABLE users(user_id INTEGER PRIMARY KEY AUTOINCREMENT,\
-                                    nickname TEXT UNIQUE, regDate INTEGER,\
-                                    lastLogin INTEGER, timesviewed INTEGER,\
+                                    nickname TEXT UNIQUE, password TEXT, regDate INTEGER,\
+                                    lastLogin INTEGER, timesviewed INTEGER, userType BOOL,\
                                     UNIQUE(user_id, nickname))'
         #Connects to the database. Gets a connection object
         con = sqlite3.connect(self.db_path)
@@ -450,11 +450,10 @@ class Connection(object):
 
         '''
         order_id = 'order-' + str(row['order_id'])
-        user = row['user_nickname']
-        sport = row['sport_id']
+        user = row['nickname']
         sportname = row['sportname']
         timestamp = row['timestamp']
-        order = {'orderid': order_id, 'usernickname': user,'order sport id': sport,
+        order = {'orderid': order_id, 'nickname': user,
                    'sportname': sportname, 'timestamp': timestamp}
         return order
 
@@ -470,11 +469,10 @@ class Connection(object):
 
         '''
         order_id = 'order-' + str(row['order_id'])
-        user = row['user_nickname']
-        sport_id = row['sport_id']
+        user = row['nickname']
         sport_name = row['sportname']
         timestamp = row['timestamp']
-        order = {'order_id': order_id, 'user_nickname': user,'timestamp': timestamp, 'sport_id': sport_id, 'sportname': sport_name}
+        order = {'order_id': order_id, 'nickname': user,'timestamp': timestamp, 'sportname': sport_name}
         return order
 
     #Helpers for users
@@ -585,7 +583,7 @@ class Connection(object):
         #Build the return object
         return self._create_order_object(row)
 
-    def get_orders(self, user_nickname=None, number_of_orders=-1,
+    def get_orders(self, nickname=None, number_of_orders=-1,
                      before=-1, after=-1):
         '''
         Return a list of all the orders in the database filtered by the
@@ -626,18 +624,18 @@ class Connection(object):
         #of nickname, numbero_of_orders, before and after arguments.
         query = 'SELECT * FROM orders'
           #Nickname restriction
-        if user_nickname is not None or before != -1 or after != -1:
+        if nickname is not None or before != -1 or after != -1:
             query += ' WHERE'
-        if user_nickname is not None:
-            query += " user_nickname = '%s'" % user_nickname
+        if nickname is not None:
+            query += " nickname = '%s'" % nickname
           #Before restriction
         if before != -1:
-            if user_nickname is not None:
+            if nickname is not None:
                 query += ' AND'
             query += " timestamp < %s" % str(before)
           #After restriction
         if after != -1:
-            if user_nickname is not None or before != -1:
+            if nickname is not None or before != -1:
                 query += ' AND'
             query += " timestamp > %s" % str(after)
           #Order of results
@@ -696,8 +694,8 @@ class Connection(object):
             return False
         return True
 
-    def create_order(self, user_nickname,
-                    sport_id):
+    def create_order(self, nickname,
+                    sportname):
         '''
         Create a new order with the data provided as arguments.
 
@@ -718,8 +716,8 @@ class Connection(object):
                 * test_create_order_noexistingid
         '''
         _timestamp = time.mktime(datetime.now().timetuple())
-        _user_nickname = user_nickname
-        _sport_id = sport_id
+        _nickname = nickname
+        _sportname = sportname
         
         self.set_foreign_keys_support()
         self.con.row_factory = sqlite3.Row
@@ -735,17 +733,17 @@ class Connection(object):
 				pvalue4 = (order_id,)
 				cur.execute(query4,pvalue4)
 				self.con.commit()
-        query2 = 'SELECT sportname from sports WHERE sport_id = ?'
-        pvalue2 = (sport_id,)
+        query2 = 'SELECT * from sports WHERE sportname = ?'
+        pvalue2 = (sportname,)
         cur.execute(query2,pvalue2)
         row = cur.fetchone()
         if row is None:
-            _sport_id = None
+            return False
         else:
-            _sport_name = row["sportname"]
+            _sportname = row["sportname"]
 
-        query1 = 'INSERT INTO orders(user_nickname,sport_id,sportname,timestamp) VALUES(?,?,?,?)'
-        pvalue1 = (_user_nickname,_sport_id,_sport_name,_timestamp)
+        query1 = 'INSERT INTO orders(nickname,sportname,timestamp) VALUES(?,?,?)'
+        pvalue1 = (_nickname,_sportname,_timestamp)
         # cur = self.con.cursor()
         cur.execute(query1,pvalue1)
         self.con.commit()
@@ -781,7 +779,7 @@ class Connection(object):
             return None
         #Build the return object
         else:
-			username = row["user_nickname"]
+			username = row["nickname"]
         return username
 		
     def contains_order(self, order_id):
@@ -1201,8 +1199,8 @@ class Connection(object):
           #SQL Statement for extracting the userid given a nickname
         query1 = 'SELECT user_id from users WHERE nickname = ?'
           #SQL Statement to create the row in  users table
-        query2 = 'INSERT INTO users(nickname,password,regDate,lastLogin,timesviewed)\
-                  VALUES(?,?,?,?,?)'
+        query2 = 'INSERT INTO users(nickname,password,regDate,lastLogin,timesviewed,userType)\
+                  VALUES(?,?,?,?,?,?)'
           #SQL Statement to create the row in user_profile table
         query3 = 'INSERT INTO users_profile (firstname,lastname, \
                                              email,website, \
@@ -1216,12 +1214,15 @@ class Connection(object):
         timestamp = time.mktime(datetime.now().timetuple())
         timesviewed = 0
         #temporal variables for user profiles
+        #p_profile is for user,r_profile is for user_profile
         p_profile = user['public_profile']
         r_profile = user['restricted_profile']
         print p_profile
         print r_profile
         _password = p_profile.get('password')
         print _password
+        _userType = p_profile.get('userType')
+        print _userType
         _regDate = p_profile.get('regDate')
         print _regDate
         _signature = p_profile.get('signature', None)
@@ -1259,7 +1260,7 @@ class Connection(object):
         if row is None:
             #Add the row in users table
             # Execute the statement
-            pvalue = (nickname, _password, _regDate, timestamp, timesviewed)
+            pvalue = (nickname, _password, _regDate, timestamp, timesviewed,_userType)
             cur.execute(query2, pvalue)
             #Extrat the rowid => user-id
             lid = cur.lastrowid
