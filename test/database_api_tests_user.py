@@ -2,32 +2,6 @@
 Created on 05.06.2016
 Modified on 06.06.2016
 Database interface testing for all users related methods.
-The user has a data model represented by the following User dictionary:
-    {'public_profile': {'signature': '', 'avatar': ''},
-	'restricted_profile': {'firstname': '','lastname': '','email': '', 'age': ,'residence': '', 
-	'gender': '','picture': '','website': '','mobile': "",'skype': ''}}
-    
-	where:
-     - registrationdate: UNIX timestamp when the user registered in
-                         the system
-     - nickname: nickname of the user
-     - signature: text chosen by the user for signature
-     - avatar: name of the image file used as avatar
-     - firstanme: given name of the user
-     - lastname: of the user
-     - email: current email of the user.
-     - website: url with the user's personal page
-     - mobile: string showing the user's phone number
-     - skype: user's nickname in skype
-     - residence: complete user's home address.
-     - picture: file which contains an image of the user.
-     - gender: User's gender ('male' or 'female').
-     - birthday: int with the birthday of the user.
-
-
-List of users has the following data model:
-[{'nickname': u'', 'registrationdate': }, {'nickname': u'', 'registrationdate': }]
-
 
 @author: chen haoyu
 '''
@@ -41,58 +15,50 @@ ENGINE = database.Engine(DB_PATH)
 #CONSTANTS DEFINING DIFFERENT USERS AND USER PROPERTIES
 USER1_NICKNAME = 'chen'
 USER1_ID = 1
-USER1 = {'public_profile': {'registrationdate': 1362015937,
-                            'nickname': USER1_NICKNAME,
+USER1_PASSWORD = '123'
+USER1_regDate=321
+USER1 = {'public_profile': {'nickname': USER1_NICKNAME,
+                            'password': '123',
+                            'regDate': 321,
                             'signature': 'Well, hello there! Blah ...',
-                            'avatar': 'avatar_2.gif'},
-         'restricted_profile': {'firstname': 'Mystery', 'lastname': 'Williams',
+                            'avatar': 'avatar_2.gif',
+                            'userType':'True'},
+         'restricted_profile': {'firstname': 'chen', 'lastname': 'dashuai',
                                 'email': 'jane@imaginecompany.com',
-                                'birthday': '1998-01-22',
-                                'residence': 'New York', 'gender': 'Female',
-                                'picture': 'photo1.jpg', 'website': None,
-                                'mobile': None, 'skype': None}
+                                'website': None, 'gender': 'Female'}
          }
-MODIFIED_USER1 = {'public_profile': {'registrationdate': 1362015937,
-                                     'nickname': USER1_NICKNAME,
-                                     'signature': 'New signature',
+MODIFIED_USER1 = {'public_profile': {'signature': 'New signature',
                                      'avatar': 'new_avatar.jpg'},
-                  'restricted_profile': {'firstname': 'Mystery',
-                                         'lastname': 'Williams',
+                  'restricted_profile': {'firstname': 'bo',
+                                         'lastname': 'li',
                                          'email': 'new_email@myname',
-                                         'birthday': '1940-01-22',
-                                         'residence': 'Bank of Zurich, Spain',
-                                         'gender': 'Female',
-                                         'picture': 'new_picture.jpg',
                                          'website': 'http: //www.mynewsite.com',
-                                         'mobile': "8002020",
-                                         'skype': 'mystery'}
+                                         'gender': 'Female'}
                   }
-USER2_NICKNAME = 'libo'
+USER2_NICKNAME = 'chendashuai'
 USER2_ID = 5
-USER2 = {'public_profile': {'registrationdate': 1394357686,
-                            'nickname': USER2_NICKNAME,
+USER2_regDate=1394357686
+USER2 = {'public_profile': {'nickname': USER2_NICKNAME,
+                            'password': '1394357686',
+                            'regDate': 1394357686,
                             'signature': 'Washington Capitals rule!',
-                            'avatar': 'avatar_7.jpg'},
-         'restricted_profile': {'firstname': 'Dan', 'lastname': 'Nicholls',
+                            'avatar': 'avatar_7.jpg',
+                            'userType':'True'},
+         'restricted_profile': {'firstname': 'chen', 'lastname': 'hy',
                                 'email': 'dan@gmail.com',
-                                'birthday': '1981-12-22',
-                                'website': 'http://www.hockeyfan.com/',
-                                'residence': 'Washington DC', 'gender': 'Male',
-                                'picture': 'photo8.png', 'mobile': None,
-                                'skype': None},
+                                'website': 'http://www.hockeyfan.com/', 'gender': 'Male'}
          }
-NEW_USER_NICKNAME = 'sully'
-NEW_USER = {'public_profile': {'signature': 'I am blue',
-                               'avatar': 'na_vi.jpg'},
-            'restricted_profile': {'firstname': 'Jake', 'lastname': 'Sully',
-                                   'email': 'sully@rda.com',
-                                   'birthday': '2011-12-10',
-                                   'website': 'http: //www.pandora.com/',
-                                   'residence': 'USA', 'gender': 'Male',
-                                   'picture': 'na_vi2.png',
-                                   'mobile': "83232323",
-                                   'skype': 'jakesully'},
-            }
+NEW_USER_NICKNAME = 'ivan'
+NEW_USER = {'public_profile': {'nickname': NEW_USER_NICKNAME,
+                            'password': '123',
+                            'regDate': 0621,
+                            'signature': 'Well, hello there! finally ...',
+                            'avatar': 'avatar_2.gif',
+                            'userType':'True'},
+         'restricted_profile': {'firstname': 'Mystery', 'lastname': 'Williams',
+                                'email': 'ivan@imaginecompany.com',
+                                'website': None, 'gender': 'Male'}
+         }
 USER_WRONG_NICKNAME = 'Batty'
 INITIAL_SIZE = 5
 
@@ -109,13 +75,15 @@ class UserDBAPITestCase(unittest.TestCase):
         '''
         print "Testing ", cls.__name__
         ENGINE.remove_database()
+        print "Testing dab remove ", cls.__name__
         ENGINE.create_tables()
-
-    @classmethod
+        print "Testing createding dab", cls.__name__
+		
+    @classmethod	
     def tearDownClass(cls):
         '''Remove the testing database'''
         print "Testing ENDED for ", cls.__name__
-        ENGINE.remove_database()
+        ENGINE.remove_database()   
 
     def setUp(self):
         '''
@@ -156,7 +124,7 @@ class UserDBAPITestCase(unittest.TestCase):
             #Execute main SQL Statement
             cur.execute(query1)
             users = cur.fetchall()
-            #Assert
+            #Assert	
             self.assertEquals(len(users), INITIAL_SIZE)
             #Check the users_profile:
             cur.execute(query2)
@@ -200,7 +168,7 @@ class UserDBAPITestCase(unittest.TestCase):
 
     def test_get_user(self):
         '''
-        Test get_user with id chen and libo
+        Test get_user with id chen and j
         '''
         print '('+self.test_get_user.__name__+')', \
               self.test_get_user.__doc__
@@ -210,18 +178,18 @@ class UserDBAPITestCase(unittest.TestCase):
         self.assertDictContainsSubset(user, USER1)
         user = self.connection.get_user(USER2_NICKNAME)
         self.assertDictContainsSubset(user, USER2)
-
-    def test_get_user_noexistingid(self):
+		
+    def test_get_user_noexistingname(self):
         '''
         Test get_user with  msg-200 (no-existing)
         '''
-        print '('+self.test_get_user_noexistingid.__name__+')', \
-              self.test_get_user_noexistingid.__doc__
+        print '('+self.test_get_user_noexistingname.__name__+')', \
+              self.test_get_user_noexistingname.__doc__
 
         #Test with an existing user
         user = self.connection.get_user(USER_WRONG_NICKNAME)
         self.assertIsNone(user)
-
+		
     def test_get_users(self):
         '''
         Test that get_users work correctly and extract required user info
@@ -235,24 +203,21 @@ class UserDBAPITestCase(unittest.TestCase):
         #USER2_ID are correct:
         for user in users:
             if user['nickname'] == USER1_NICKNAME:
-                self.assertDictContainsSubset(user, USER1['public_profile'])
+                self.assertEquals(user['regDate'], USER1_regDate)
             elif user['nickname'] == USER2_NICKNAME:
-                self.assertDictContainsSubset(user, USER2['public_profile'])
-
+                self.assertEquals(user['regDate'], USER2_regDate)
+		
     def test_delete_user(self):
         '''
-        Test that the user Mystery is deleted
+        Test that the user chen is deleted
         '''
         print '('+self.test_delete_user.__name__+')', \
               self.test_delete_user.__doc__
-        resp = self.connection.delete_user(USER1_NICKNAME)
+        resp = self.connection.delete_user(USER1_NICKNAME,USER1_PASSWORD)
         self.assertTrue(resp)
         #Check that the users has been really deleted throug a get
         resp2 = self.connection.get_user(USER1_NICKNAME)
         self.assertIsNone(resp2)
-        #Check that the user does not have associated any message
-        resp3 = self.connection.get_messages(nickname=USER1_NICKNAME)
-        self.assertEquals(len(resp3), 0)
 
     def test_delete_user_noexistingnickname(self):
         '''
@@ -261,9 +226,9 @@ class UserDBAPITestCase(unittest.TestCase):
         print '('+self.test_delete_user_noexistingnickname.__name__+')', \
               self.test_delete_user_noexistingnickname.__doc__
         #Test with an existing user
-        resp = self.connection.delete_user(USER_WRONG_NICKNAME)
+        resp = self.connection.delete_user(USER_WRONG_NICKNAME,USER1_PASSWORD)
         self.assertFalse(resp)
-
+		
     def test_modify_user(self):
         '''
         Test that the user Mystery is modifed
@@ -283,15 +248,9 @@ class UserDBAPITestCase(unittest.TestCase):
         self.assertEquals(p_profile['signature'],
                           resp_p_profile['signature'])
         self.assertEquals(p_profile['avatar'], resp_p_profile['avatar'])
-        self.assertEquals(r_profile['birthday'], resp_r_profile['birthday'])
         self.assertEquals(r_profile['email'], resp_r_profile['email'])
         self.assertEquals(r_profile['website'], resp_r_profile['website'])
-        self.assertEquals(r_profile['residence'], resp_r_profile['residence'])
-        self.assertEquals(r_profile['mobile'], resp_r_profile['mobile'])
-        self.assertEquals(r_profile['skype'], resp_r_profile['skype'])
-        self.assertEquals(r_profile['picture'], resp_r_profile['picture'])
-        self.assertDictContainsSubset(resp2, MODIFIED_USER1)
-
+		
     def test_modify_user_noexistingnickname(self):
         '''
         Test modify_user with  user Batty (no-existing)
@@ -301,7 +260,7 @@ class UserDBAPITestCase(unittest.TestCase):
         #Test with an existing user
         resp = self.connection.modify_user(USER_WRONG_NICKNAME, USER1)
         self.assertIsNone(resp)
-
+		
     def test_append_user(self):
         '''
         Test that I can add new users
@@ -318,15 +277,6 @@ class UserDBAPITestCase(unittest.TestCase):
         self.assertDictContainsSubset(NEW_USER['public_profile'],
                                       resp2['public_profile'])
 
-    def test_append_existing_user(self):
-        '''
-        Test that I cannot add two users with the same name
-        '''
-        print '('+self.test_append_existing_user.__name__+')', \
-              self.test_append_existing_user.__doc__
-        nickname = self.connection.append_user(USER1_NICKNAME, NEW_USER)
-        self.assertIsNone(nickname)
-
     def test_get_user_id(self):
         '''
         Test that get_user_id returns the right value given a nickname
@@ -342,11 +292,11 @@ class UserDBAPITestCase(unittest.TestCase):
         '''
         Test that get_user_id returns None when the nickname does not exist
         '''
-        print '('+self.test_get_user_id.__name__+')', \
-              self.test_get_user_id.__doc__
+        print '('+self.test_get_user_id_unknown_user.__name__+')', \
+              self.test_get_user_id_unknown_user.__doc__
         id = self.connection.get_user_id(USER_WRONG_NICKNAME)
         self.assertIsNone(id)
-
+		
     def test_not_contains_user(self):
         '''
         Check if the database does not contain users with id Batty
@@ -363,6 +313,8 @@ class UserDBAPITestCase(unittest.TestCase):
               self.test_contains_user.__doc__
         self.assertTrue(self.connection.contains_user(USER1_NICKNAME))
         self.assertTrue(self.connection.contains_user(USER2_NICKNAME))
+
+									  
 
 if __name__ == '__main__':
     print 'Start running user tests'

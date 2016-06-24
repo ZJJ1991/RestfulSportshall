@@ -1,0 +1,24 @@
+import forum.database as database
+engine = database.Engine()
+con = engine.connect()
+con.check_foreign_keys_status()
+con.set_foreign_keys_support()
+con.check_foreign_keys_status()
+
+
+
+python -m test.database_api_tests_user
+python -m test.database_api_tests_order
+python -m test.database_api_tests_sport
+
+		
+NEW_SPORT_NAME= 'flying'
+
+NEW_SPORTTIME = "0315"
+NEWSPORTHALL =99
+NEW_NOTE= "for 1 people"	
+
+
+
+
+					  

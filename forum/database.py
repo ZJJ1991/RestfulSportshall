@@ -80,8 +80,11 @@ class Engine(object):
         cur.execute(keys_on)
         with con:
             cur = con.cursor()
-            cur.execute("DELETE FROM messages")
+            cur.execute("DELETE FROM orders")
+            cur.execute("DELETE FROM sports")
             cur.execute("DELETE FROM users")
+            cur.execute("DELETE FROM users_profile")
+            cur.execute("DELETE FROM friends")
             #NOTE since we have ON DELETE CASCADE BOTH IN users_profile AND
             #friends, WE DO NOT HAVE TO WORRY TO CLEAR THOSE TABLES.
 
@@ -453,7 +456,7 @@ class Connection(object):
         user = row['nickname']
         sportname = row['sportname']
         timestamp = row['timestamp']
-        order = {'orderid': order_id, 'nickname': user,
+        order = {'order_id': order_id, 'nickname': user,
                    'sportname': sportname, 'timestamp': timestamp}
         return order
 
@@ -515,21 +518,17 @@ class Connection(object):
             Note that all values are string if they are not otherwise indicated.
 
         '''
-        reg_date = row['regDate']
-        return {'public_profile': {'registrationdate': reg_date,
-                                   'nickname': row['nickname'],
+        return {'public_profile': {'nickname': row['nickname'],
+                                   'password': row['password'],
+                                   'regDate' : row['regDate'],
                                    'signature': row['signature'],
-                                   'avatar': row['avatar']},
+                                   'avatar': row['avatar'],
+                                   'userType': row['userType']},
                 'restricted_profile': {'firstname': row['firstname'],
                                        'lastname': row['lastname'],
                                        'email': row['email'],
                                        'website': row['website'],
-                                       'mobile': row['mobile'],
-                                       'skype': row['skype'],
-                                       'age': row['age'],
-                                       'residence': row['residence'],
-                                       'gender': row['gender'],
-                                       'picture': row['picture']}
+                                       'gender': row['gender']}
                 }
 
     def _create_user_list_object(self, row):
@@ -928,9 +927,9 @@ class Connection(object):
           #SQL Statement to create the row in sports table
         #temporal variables for sports table
 
-        _sport_name = sport.get('sportname', None)
-        _sport_time = sport.get('time', None)
-        _number = sport.get('hallnumber', None)
+        _sport_name = sport.get('sport name', None)
+        _sport_time = sport.get('sport time', None)
+        _number = sport.get('sporthall number', None)
         _note = sport.get('note', None)
         
         #Activate foreign key support
