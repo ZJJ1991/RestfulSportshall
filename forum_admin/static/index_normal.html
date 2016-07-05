@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Sportshall Management System </title>
+    <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+    <script src="js/index.js"></script>
+    <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="facebox/src/facebox.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+    
+    
+    <link rel='stylesheet prefetch' href='http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css'>
+
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" type="text/css" href="facebox/src/facebox.css">
+
+    
+    
+    
+  </head>
+
+  <body>
+
+  
+  <div id="intro">
+		<p style='position:relative;  top:-20px' ><font size="5.5" face="arial" ><b>Forum administration panel</b></font></p>
+		<p style='position:relative;  top:-8px' ><font size="2.5" face="arial" >Click on a nickname in the sidebar to edit/delete a user info. Press<b> "Add User"</b> to add a new user.</font></p>
+	</div>
+  
+  	<div id = "mainContent" class="maincontent" >
+			 <div id="existingUserData">
+				<!-- Main content area -->
+				<div class="section" id="userPublicInfo">
+					<form action="#" id="user_public_form">
+						<div class="commands">
+							<input type="button" value="Delete User" id="deleteUser" onclick="display_delete_user_form();">
+							<input type="button" value=" Add  User " id="addUser" onclick="display_create_user_form();">
+							
+						</div>
+						<p id="userHeader">  
+							<a id="username" >username</a>
+						</p>
+						<ul id="user_panel"></ul>
+					</form> 
+				</div>
+    </div>
+	<div id="existingSportsData">
+	            <div class="section" id="SportPublicInfo">
+					<form action="#" id="sport_public_form">
+						<div class="commands">
+							<input id="deleteSport" type="button" value="Delete Sport" onclick="display_delete_sport_form()"/>
+							<input id="addSport" type="button"    value=" Add  Sport " onclick="display_create_sport_form()"/>
+						
+						</div>
+						<p id="sportHeader">  
+							<a class="sportname" id="sportname"  >sportname</a>
+						</p>
+						<ul id="sport_panel"></ul>
+					</form> 
+				</div>
+	</div>
+	<div id="existingOrdersData">
+	            <div class="section" id="OrderPublicInfo">
+					<form action="#" id="order_public_form">
+						<div class="commands">
+							<input id="deleteOrder" type="button" value="Delete Order" onclick="display_delete_order_form()"/>
+							<input id="addOrder" type="button"    value=" Add  Order" onclick="display_create_order_form()"/>
+						</div>
+						<p id="orderHeader">  
+							<a class="ordername" id="ordername"  >ordername</a>
+						</p>
+						<ul id="order_panel"></ul>
+					</form> 
+				</div>
+	</div>
+		</div>
+   <div id="form_content" style="display:none;"></div>
+  
+  
+  
+  
+  
+    <div class="demo">
+  <div class="demo__top">
+
+  </div>
+  <div class="demo__body">
+    <div class="plane-cont">
+      <div class="plane-rotater">
+        <div class="plane">
+          <svg class="plane-svg" viewBox="0 0 28 26">
+            <path class="plane-svg__path" fill="#fff" d="M0,0 28,13 0,26 0,13 20,13 0,7z" />
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div class="pull-down">Pull down</div>
+    <div class="items">
+	
+      <div class="item item-3">
+        <a target="_blank" class="icon-box item__icon">
+		  <img src="image/user.png" onClick="getUserProfile()"/>
+        </a>
+        <a  id="user_name" target="_blank" class="item__name" onClick="getUserProfile()" >Users</a>
+      </div>
+	  
+      <div class="item item-2">
+        <div class="item__icon m--img">
+          <img src="image/sports.png" onClick="getSports()"/>
+        </div>
+        <a  target="_blank" class="item__name" onClick="getSports()">Sports</a>
+      </div>
+	  
+      <div class="item item-1">
+        <div class="item__icon m--img">
+          <img src="image/order.jpg" onClick="getOrders()" />
+        </div>
+       <a  target="_blank" class="item__name" onClick="getOrders()">Orders</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+    
+    
+  <script>
+
+    var namevalue = window.localStorage.getItem("username");
+    console.log ("RECEIVED username: ", window.localStorage.getItem("username"));
+    $("#user_name").html("Name: "+ namevalue);
+    line = '';
+    function getUsers(){
+		$.ajax({
+		url : 'http://localhost:5000/forum/api/users/',
+		type: 'GET'
+		}).always(function(){
+			$("#user_panel").empty();
+			$("#sport_panel").empty();
+			$("#order_panel").empty();
+		}).done(function(data){
+			console.log("data: ", data);
+			writeToFile('test get users');
+			users = data.collection.items;
+			line = line + '\n';
+			$("#existingUserData").show();
+			$("#existingSportsData").hide();
+			$("#existingOrdersData").hide();
+			for (var i=0; i < users.length; i++){
+			var user = users[i];
+			//Extract the username by getting the data values. Once obtained
+			// the username use the method appendUserToList to show the user
+			// information in the UI.
+			//Data format example:
+			//  [ { "name" : "username", "value" : "Mystery" },
+			//    { "name" : "registrationdate", "value" : "2014-10-12" } ]
+			
+			var user_data = user.data;
+			for (var j=0; j<user_data.length;j++){
+				if (user_data[j].name=="nickname"){
+					console.log("time: ", j);
+					appendUserToList(user.href, user_data[j].value);
+				}
+			}
+		}
+		//Set the href of #addUser for creating a new user
+		//setNewUserUrl(data.collection.href)
+		}).fail(function(){
+		});
+		}
+
+		function getUserProfile(){
+			$.ajax({
+			url : 'http://localhost:5000/forum/api/users/'+window.localStorage.getItem("username")+'/',
+			type: 'GET'
+			}).always(function(){
+				$("#user_panel").empty();
+				$("#sport_panel").empty();
+				$("#order_panel").empty();
+				console.log ("RECEIVED username 1: ", window.localStorage.getItem("username"));
+			}).done(function(data){
+				console.log("data: ", data);
+				console.log ("RECEIVED username: ", window.localStorage.getItem("username"));
+				profiles = data.collection.items;
+				console.log("Profiles: ", profiles);
+				console.log("Profiles data: ", profiles.data);
+				line = line + '\n';
+				$("#existingUserData").show();
+				$("#existingSportsData").hide();
+				$("#existingOrdersData").hide();
+				for (var i=0; i < profiles.length; i++){
+				var profile = profiles[i];
+				console.log("proifile", profile);
+				//Extract the username by getting the data values. Once obtained
+				// the username use the method appendUserToList to show the user
+				// information in the UI.
+				//Data format example:
+				//  [ { "name" : "username", "value" : "Mystery" },
+				//    { "name" : "registrationdate", "value" : "2014-10-12" } ]
+				
+				var profile_data = profile.data;
+				for (var j=0; j<profile_data.length;j++){
+
+						appendUserToList("", profile_data[j].name +": "+ profile_data[j].value);
+					
+				}
+			}
+			//Set the href of #addUser for creating a new user
+			//setNewUserUrl(data.collection.href)
+			}).fail(function(){
+			});
+		}
+		
+		
+		
+		
+
+			
+			
+		function getSports(){
+			$.ajax({
+			url : 'http://localhost:5000/forum/api/sports/',
+			type: 'GET'
+			}).always(function(){
+				$("#user_panel").empty();
+				$("#sport_panel").empty();
+				$("#order_panel").empty();
+			}).done(function(data){
+				console.log("sport data: ", data);
+				sports = data.collection.items;
+				console.log("sports items: ", sports);
+				$("#existingUserData").hide();
+				$("#existingSportsData").show();
+				$("#existingOrdersData").hide();
+				for (var i=0; i < sports.length; i++){
+				var sport = sports[i];
+				//Extract the username by getting the data values. Once obtained
+				// the username use the method appendUserToList to show the user
+				// information in the UI.
+				//Data format example:
+				//  [ { "name" : "username", "value" : "Mystery" },
+				//    { "name" : "registrationdate", "value" : "2014-10-12" } ]
+				var sport_data = sport.data;
+				var sport_id = null;
+				for (var j=0; j<sport_data.length;j++){
+					if (sport_data[j].name=="sport_id"){
+						sport_id = sport_data[j].value;
+					}
+					if (sport_data[j].name=="sportname"){
+						sport_name = sport_data[j].value;
+					}
+					if (sport_data[j].name=="time"){
+						time = sport_data[j].value;
+					}
+					if (sport_data[j].name=="hallnumber"){
+					    hallnumber = sport_data[j].value;
+					}
+					if (sport_data[j].name=="note"){
+					    note = sport_data[j].value;
+						appendSportToList(sport_id, sport_name, time, hallnumber, note);
+					}
+				}
+			}
+			//Set the href of #addUser for creating a new user
+			//setNewUserUrl(data.collection.href)
+			}).fail(function(){
+			});
+			}
+		
+
+		
+		function getOrders(){
+			$.ajax({
+			url : 'http://localhost:5000/forum/api/orders/'+window.localStorage.getItem("username")+'/',
+			type: 'GET'
+			}).always(function(){
+				$("#user_panel").empty();
+				$("#sport_panel").empty();
+				$("#order_panel").empty();
+			}).done(function(data){
+				console.log("data: ", data);
+				orders = data.collection.items;
+				$("#existingUserData").hide();
+				$("#existingSportsData").hide();
+				$("#existingOrdersData").show();
+				for (var i=0; i < orders.length; i++){
+				var order = orders[i];
+				//Extract the username by getting the data values. Once obtained
+				// the username use the method appendUserToList to show the user
+				// information in the UI.
+				//Data format example:
+				//  [ { "name" : "username", "value" : "Mystery" },
+				//    { "name" : "registrationdate", "value" : "2014-10-12" } ]
+				var order_data = order.data;
+				var user_nickname = null;
+				var sport_id = null;
+				var sportname = null;
+				var timestamp = null;
+				for (var j=0; j<order_data.length;j++){
+
+					if (order_data[j].name=="user_nickname"){
+						user_nickname = order_data[j].value;
+					}
+					if (order_data[j].name=="sportname"){
+						sportname = order_data[j].value;
+					}
+					if (order_data[j].name=="timestamp"){
+						timestamp = order_data[j].value;
+						appendOrderToList(user_nickname, sportname, timestamp);
+					}
+				}
+			}
+			//Set the href of #addUser for creating a new user
+			//setNewUserUrl(data.collection.href)
+			}).fail(function(){
+			});
+			}
+		
+   
+		function appendUserToList(url, username) {
+			//var $user = $('<li>').html('<a class= "user_link" href="'+url+'>'+username+'</a>');
+			//Add to the user list
+			//Username = username;
+			$("#user_panel").append('<li>'+username+'</li>');
+			console.log("username is: ", username);
+
+		}
+    
+		
+		
+		function appendSportToList(sport_id, sportname, time, hallnumber, note) {
+			console.log("sportname is: ", sportname);
+			//var $sport = $('<li>').html('<a class= "sport_link"  href="'+url+'>'+sportname+'</a>');
+			//Add to the user list
+			username = window.localStorage.getItem("username");
+			sn = sportname;
+			$("#sport_panel").append('<li>'+'Sport Name: '+sportname+'***Sport ID:'+ sport_id +'***Time'+time +'***Hallnumber'+hallnumber + "***Note: "+note +'\n'+'</li>');
+			$("#sport_panel").append('<input id="bookSport" type="button"  onclick="BookSport(sn)"  />')
+		}
+
+		
+		
+		function appendOrderToList(user_nickname, sportname, timestamp){
+			console.log("sportname ordered is: ", sportname);
+			//var $sport = $('<li>').html('<a class= "sport_link"  href="'+url+'>'+sportname+'</a>');
+			//Add to the user list
+			$("#order_panel").append('<li>'+'User Nickname: '+user_nickname+'*********Sport Name: '+sportname+'*********Timestamp: '+timestamp+'</li>');
+		}
+
+	function display_create_user_form(){
+		var str = '';
+		str += '<h3>Create new user</h3>';
+		str += '<div class="form-item"><label>Username:</label><input type="" id="input_nickname" /></div>';
+		str += '<div class="form-item"><label>Password:</label><input type="" id="input_password" /></div>';
+		str += '<div class="form-item"><label>Date of birth:</label><input type="" id="input_dateofbirth" /></div>';
+		str += '<div class="form-item"><label>Email:</label><input type="" id="input_email" /></div>';
+		str += '<div class="form-item"><label>Gender:</label><input type="" id="input_gender" /></div>';
+		str += '<div><button onclick="create_new_user()">Create new user</button></div>';
+		$.facebox(str);
+	}
+   
+    function display_delete_user_form(){
+		var str = '';
+		str += '<h3>Delete User</h3>';
+		str += '<div class="form-item"><label>Username:</label><input type="" id="delete_nickname" /></div>';
+		str += '<div class="form-item"><label>Password:</label><input type="" id="delete_password" /></div>';
+		str += '<div><button onclick="delete_user();">Delete User</button></div>';
+		$.facebox(str);
+    }
+	
+	
+	
+	
+	function display_create_sport_form(){
+		var str = '';
+		str += '<h3>Create new sport</h3>';
+		str += '<div class="form-item"><label>Sport Name:</label><input type="" id="input_sportname" /></div>';
+		str += '<div class="form-item"><label>Time:</label><input type="" id="input_time" /></div>';
+		str += '<div class="form-item"><label>Hall Number:</label><input type="" id="input_hallnumber" /></div>';
+		str += '<div class="form-item"><label>Note:</label><input type="" id="input_note" /></div>';
+		str += '<div><button onclick="create_new_sport()">Create new sport</button></div>';
+		$.facebox(str);
+	}
+	
+	
+	function display_delete_sport_form(){
+		var str = '';
+		
+		str += '<h3>Delete Sport</h3>';
+		str += '<div>Sport Name: <input type="" id="delete_sportname" /></div>';
+		str += '<div><button onclick="delete_sport();">Delete Sport</button></div>';
+		$.facebox(str);
+	}
+	
+	function display_create_order_form(){
+		var str = '';
+		str += '<h3>Book this Sport</h3>';
+		str += '<div class="form-item"><label>Sport Name:</label><input type="" id="input_sportname" /></div>';
+		str += '<div class="form-item"><label>Time:</label><input type="" id="input_time" /></div>';
+		str += '<div class="form-item"><label>Hall Number:</label><input type="" id="input_hallnumber" /></div>';
+		str += '<div class="form-item"><label>Note:</label><input type="" id="input_note" /></div>';
+		str += '<div><button onclick="create_new_sport()">Create new sport</button></div>';
+		$.facebox(str);
+	}
+	
+	function display_delete_order_form(){
+	
+	}
+	
+	function delete_user(){
+			$.ajax({
+			url : 'http://localhost:5000/forum/api/deleteuser/'+ $('#delete_nickname').val() +'/'+ $('#delete_password').val() + '/',
+			type: 'DELETE'
+			}).always(function(){
+				alert("are you sure to delete user? ");
+			}).done(function(data){
+				writeToFile(line+'User: '+$('#delete_nickname').val()+' has been deleted');
+				$.facebox.close();
+				getUsers();
+			}).fail(function(){
+				alert("username and password do not match...");
+			});
+	}
+
+
+
+	function create_new_user(){
+
+		data =  '';
+		data += '{"template":{';
+		data += '"data":[';
+		data += '{"required": true, "prompt": "Insert user nickname", "name": "nickname", "value": "'+ $('#input_nickname').val() +'"},';
+		data += '{"required": true, "prompt": "Insert user password", "name": "password", "value": "'+ $('#input_password').val() +'"},';
+		data += '{"required": true, "prompt": "Insert user regDate", "name": "regDate", "value": "1991-232-12"},';
+		data += '{"required": false, "prompt": "Insert user address", "name": "address", "value": "1d246"},';
+		data += '{"required": false, "prompt": "Insert user signature", "name": "signature", "value": "asdaxzadfgf"},';
+		data += '{"required": true, "prompt": "Insert user avatar", "name": "avatar", "value": "aasd"},';
+		data += '{"required": true, "prompt": "Insert user birthday", "name": "birthday", "value": "'+ $('#input_dateofbirth').val() +'"},';
+		data += '{"required": true, "prompt": "Insert user email", "name": "email", "value": "'+ $('#input_email').val() +'"},';
+		data += '{"required": true, "prompt": "Insert user website", "name": "website", "value": "asdas.com"},';
+		data += '{"required": true, "prompt": "Insert user familyName", "name": "familyName", "value": "malesa"},';
+		data += '{"required": true, "prompt": "Insert user gender", "name": "gender", "value": "'+ + $('#input_gender').val() +'"},';
+		data += '{"required": true, "prompt": "Insert user givenName", "name": "givenName", "value": "asdasdada"}';
+		data += ']';
+		data += '}';
+		data += '}';
+		console.log("data", '11');
+		$.ajax(
+		{
+			url: "http://localhost:5000/forum/api/users/",
+			data: data,
+			type: 'POST',
+			headers: { 
+			'Content-Type': 'application/vnd.collection+json' 
+			},
+			success: function(json){
+			console.log("data", '22');
+			alert('user has been created');
+					getUsers();
+					$.facebox.close();
+			},
+			error: function(xhr, ajaxOptions, thrownError){
+					alert('the username has been used');
+			}
+		});
+	}
+	
+	
+	function BookSport(sportname){
+		nickname = window.localStorage.getItem("username");
+		$.ajax(
+		{
+			url: "http://localhost:5000/forum/api/booksport/"+nickname+"/"+sportname+"/",
+			data: '',
+			type: 'POST',
+			headers: {
+			'Content-Type': 'application/vnd.collection+json'
+			},
+			success: function(json){
+			console.log("data", '22');
+            alert(nickname+"  aaa   "+ "sportname");
+			},
+			error: function(xhr, ajaxOptions, thrownError){
+					alert('wrong request');
+			}
+		});
+	}
+	
+
+	
+	function delete_sport(){
+			$.ajax({
+			url : 'http://localhost:5000/forum/api/sports/'+ $('#delete_sportname').val() +'/',
+			type: 'DELETE'
+			}).always(function(){
+				alert("are you sure to delete sport?(info from central node) ");
+			}).done(function(data){
+				writeToFile('sport: '+$('#delete_sportname').val()+'has been deleted.');
+				alert("This sport has been deleted through Central Node");
+				$.facebox.close();
+				getSports();
+			}).fail(function(){
+				alert("There is no such sport(info from central node)");
+			});
+	}
+	
+	
+	
+
+	
+	
+	function create_new_sport(){
+		data =  '';
+		data += '{"template":{';
+		data += '"data":[';
+		data += '{"required": true, "prompt": "Insert sportname", "name": "sportname", "value": "'+ $('#input_sportname').val() +'"},';
+		data += '{"required": false, "prompt": "Insert time", "name": "time", "value": "'+ $('#input_time').val() +'"},';
+		data += '{"required": false, "prompt": "Insert hallnumber", "name": "hallnumber", "value": "'+ $('#input_hallnumber').val() +'"},';
+		data += '{"required": false, "prompt": "Insert note", "name": "note", "value": "'+ $('#input_note').val() +'"}';
+		data += ']';
+		data += '}';
+		data += '}';
+		console.log("data", '11');
+		$.ajax(
+		{
+			url: "http://localhost:5000/forum/api/sports/",
+			data: data,
+			type: 'POST',
+			headers: {
+			'Content-Type': 'application/vnd.collection+json'
+		},
+			success: function(json){
+			console.log("data", '22');
+			alert('sport has been created in Central Node');
+					getSports();
+					$.facebox.close();
+			},
+			error: function(xhr, ajaxOptions, thrownError){
+					alert('the sport cannot be created by Central Node');
+			}
+		});
+		
+	}
+	
+	
+	function writeToFile(text){
+		$.ajax(
+		{
+			url: "http://localhost:5000/forum/api/files/"+text+"/",
+			type: "GET"
+		}).always(function(){
+				alert("You have logged this event info into your local file");
+		}).fail(function(){
+				alert("cannot log event info");
+		});
+	}
+   
+  </script>
+  </body>
+</html>

@@ -1345,6 +1345,5 @@ class Connection(object):
         row = cur.fetchone()
         if row is None:
             return False
-            print "login failed"
         else:
-			return True
+			return row

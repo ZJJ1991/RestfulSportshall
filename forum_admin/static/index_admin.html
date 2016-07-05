@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html >
+<html>
   <head>
     <meta charset="UTF-8">
     <title>Sportshall Management System </title>
@@ -66,7 +66,6 @@
 						<div class="commands">
 							<input id="deleteOrder" type="button" value="Delete Order" onclick="display_delete_order_form()"/>
 							<input id="addOrder" type="button"    value=" Add  Order" onclick="display_create_order_form()"/>
-						
 						</div>
 						<p id="orderHeader">  
 							<a class="ordername" id="ordername"  >ordername</a>
@@ -84,33 +83,7 @@
   
     <div class="demo">
   <div class="demo__top">
-    <svg class="demo__top-svgBg" viewBox="0 0 366 256">
-      <g class="svgBg__objects">
-        <path class="svgBg__bg svgBg__bg1" fill="#86D7DB" d="M0,143 88,107 224,153 348,109 366,123 366,256 0,256z" />
-        <path class="svgBg__bg svgBg__bg2" fill="#3C929A" d="M0,156 106,136 272,172 342,124 366,144 366,256 0,256z" />
-        <path class="svgBg__bg svgBg__bg3" fill="#416175" d="M0,170 62,160 235,148 305,145 366,153 366,256 0,256z" />
-        <g class="svgBg__tree svgBg__tree-1 m--left" data-id="1">
-          <path class="svgBg__tree-leafs svgBg__tree-part" fill="#389296" d="M54,127 C77,127 62,95 54,63 C46,95 31,127 54,127" />
-          <path class="svgBg__tree-trunk svgBg__tree-part" d="M56,147 Q55,115 54,83 Q53,115 52,146" />
-        </g>
-        <g class="svgBg__tree svgBg__tree-2 m--left" data-id="2">
-          <path class="svgBg__tree-leafs svgBg__tree-part" fill="#389296" d="M67,124 C90,124 75,92 67,59 C59,92 44,124 67,124" />
-          <path class="svgBg__tree-trunk svgBg__tree-part" d="M69,144 Q68,112 67,80 Q66,112 65,143" />
-        </g>
-        <g class="svgBg__tree svgBg__tree-3 m--right" data-id="3">
-          <path class="svgBg__tree-leafs svgBg__tree-part" fill="#389296" d="M264,129 C287,129 272,97 264,64 C256,97 241,129 264,129" />
-          <path class="svgBg__tree-trunk svgBg__tree-part" d="M266,149 Q265,117 264,85 Q263,117 262,148" />
-        </g>
-        <g class="svgBg__tree svgBg__tree-4 m--right" data-id="4">
-          <path class="svgBg__tree-leafs svgBg__tree-part" fill="#207277" d="M287,128 C310,128 295,96 287,63 C279,96 264,128 287,128" />
-          <path class="svgBg__tree-trunk svgBg__tree-part" d="M289,148 Q288,116 287,84 Q286,116 285,147" />
-        </g>
-        <g class="svgBg__tree svgBg__tree-5 m--right" data-id="5">
-          <path class="svgBg__tree-leafs svgBg__tree-part" fill="#389296" d="M313,128 C336,128 321,96 313,63 C305,96 290,128 313,128" />
-          <path class="svgBg__tree-trunk svgBg__tree-part" d="M315,148 Q314,116 313,84 Q312,116 311,147" />
-        </g>
-      </g>
-    </svg>
+
   </div>
   <div class="demo__body">
     <div class="plane-cont">
@@ -169,7 +142,6 @@
 			$("#order_panel").empty();
 		}).done(function(data){
 			console.log("data: ", data);
-			writeToFile('test get users');
 			users = data.collection.items;
 			line = line + '\n';
 			$("#existingUserData").show();
@@ -198,53 +170,55 @@
 		});
 		}
 
-		
-		
-		
-		
-		function getSports(){
+		function getUserProfile(){
 			$.ajax({
-			url : 'http://localhost:5001/forum/api/sports/',
+			url : 'http://localhost:5000/forum/api/users/'+window.localStorage.getItem("username")+'/',
 			type: 'GET'
 			}).always(function(){
 				$("#user_panel").empty();
 				$("#sport_panel").empty();
 				$("#order_panel").empty();
+				console.log ("RECEIVED username 1: ", window.localStorage.getItem("username"));
 			}).done(function(data){
-				console.log("sport data: ", data);
-				sports = data.collection.items;
-				console.log("sports items: ", sports);
-				$("#existingUserData").hide();
-				$("#existingSportsData").show();
+				console.log("data: ", data);
+				console.log ("RECEIVED username: ", window.localStorage.getItem("username"));
+				profiles = data.collection.items;
+				console.log("Profiles: ", profiles);
+				console.log("Profiles data: ", profiles.data);
+				line = line + '\n';
+				$("#existingUserData").show();
+				$("#existingSportsData").hide();
 				$("#existingOrdersData").hide();
-				for (var i=0; i < sports.length; i++){
-				var sport = sports[i];
+				for (var i=0; i < profiles.length; i++){
+				var profile = profiles[i];
+				console.log("proifile", profile);
 				//Extract the username by getting the data values. Once obtained
 				// the username use the method appendUserToList to show the user
 				// information in the UI.
 				//Data format example:
 				//  [ { "name" : "username", "value" : "Mystery" },
 				//    { "name" : "registrationdate", "value" : "2014-10-12" } ]
-				var sport_data = sport.data;
-				var sport_id = null;
-				for (var j=0; j<sport_data.length;j++){
-					if (sport_data[j].name=="sport_id"){
-						sport_id = sport_data[j].value;
-					}
-					if (sport_data[j].name=="sportname"){
-						appendSportToList(sport_id, sport_data[j].value);
-					}
+				
+				var profile_data = profile.data;
+				for (var j=0; j<profile_data.length;j++){
+
+						appendUserToList("", profile_data[j].name +": "+ profile_data[j].value);
+					
 				}
 			}
 			//Set the href of #addUser for creating a new user
 			//setNewUserUrl(data.collection.href)
 			}).fail(function(){
-				alert("Spots Node is out of service")
-				Get_Sports();
 			});
-			}
+		}
 		
-		function Get_Sports(){
+		
+		
+		
+
+			
+			
+		function getSports(){
 			$.ajax({
 			url : 'http://localhost:5000/forum/api/sports/',
 			type: 'GET'
@@ -274,7 +248,17 @@
 						sport_id = sport_data[j].value;
 					}
 					if (sport_data[j].name=="sportname"){
-						appendSportToList(sport_id, sport_data[j].value);
+						sport_name = sport_data[j].value;
+					}
+					if (sport_data[j].name=="time"){
+						time = sport_data[j].value;
+					}
+					if (sport_data[j].name=="hallnumber"){
+					    hallnumber = sport_data[j].value;
+					}
+					if (sport_data[j].name=="note"){
+					    note = sport_data[j].value;
+						appendSportToList(sport_id, sport_name, time, hallnumber, note);
 					}
 				}
 			}
@@ -283,59 +267,10 @@
 			}).fail(function(){
 			});
 			}
+		
+
 		
 		function getOrders(){
-			$.ajax({
-			url : 'http://localhost:5002/forum/api/orders/',
-			type: 'GET'
-			}).always(function(){
-				$("#user_panel").empty();
-				$("#sport_panel").empty();
-				$("#order_panel").empty();
-			}).done(function(data){
-				console.log("data: ", data);
-				orders = data.collection.items;
-				$("#existingUserData").hide();
-				$("#existingSportsData").hide();
-				$("#existingOrdersData").show();
-				for (var i=0; i < orders.length; i++){
-				var order = orders[i];
-				//Extract the username by getting the data values. Once obtained
-				// the username use the method appendUserToList to show the user
-				// information in the UI.
-				//Data format example:
-				//  [ { "name" : "username", "value" : "Mystery" },
-				//    { "name" : "registrationdate", "value" : "2014-10-12" } ]
-				var order_data = order.data;
-				var user_nickname = null;
-				var sport_id = null;
-				var sportname = null;
-				var timestamp = null;
-				for (var j=0; j<order_data.length;j++){
-					if (order_data[j].name=="sport_id"){
-						sport_id = order_data[j].value;
-					}
-					if (order_data[j].name=="user_nickname"){
-						user_nickname = order_data[j].value;
-					}
-					if (order_data[j].name=="sportname"){
-						sportname = order_data[j].value;
-					}
-					if (order_data[j].name=="timestamp"){
-						timestamp = order_data[j].value;
-						appendOrderToList(user_nickname, sport_id, sportname, timestamp);
-					}
-				}
-			}
-			//Set the href of #addUser for creating a new user
-			//setNewUserUrl(data.collection.href)
-			}).fail(function(){
-				alert("Order Node is out of service");
-				GetOrders();
-			});
-			}
-		
-		function GetOrders(){
 			$.ajax({
 			url : 'http://localhost:5000/forum/api/orders/',
 			type: 'GET'
@@ -345,7 +280,6 @@
 				$("#order_panel").empty();
 			}).done(function(data){
 				console.log("data: ", data);
-				alert("the Orders Node is out of service(Notification from Central Node)");
 				orders = data.collection.items;
 				$("#existingUserData").hide();
 				$("#existingSportsData").hide();
@@ -364,9 +298,7 @@
 				var sportname = null;
 				var timestamp = null;
 				for (var j=0; j<order_data.length;j++){
-					if (order_data[j].name=="sport_id"){
-						sport_id = order_data[j].value;
-					}
+
 					if (order_data[j].name=="user_nickname"){
 						user_nickname = order_data[j].value;
 					}
@@ -375,7 +307,7 @@
 					}
 					if (order_data[j].name=="timestamp"){
 						timestamp = order_data[j].value;
-						appendOrderToList(user_nickname, sport_id, sportname, timestamp);
+						appendOrderToList(user_nickname, sportname, timestamp);
 					}
 				}
 			}
@@ -397,20 +329,23 @@
     
 		
 		
-		function appendSportToList(sport_id, sportname) {
+		function appendSportToList(sport_id, sportname, time, hallnumber, note) {
 			console.log("sportname is: ", sportname);
 			//var $sport = $('<li>').html('<a class= "sport_link"  href="'+url+'>'+sportname+'</a>');
 			//Add to the user list
-			$("#sport_panel").append('<li>'+'Sport Name: '+sportname+'*****Sport ID:'+sport_id+'</li>');
+			username = window.localStorage.getItem("username");
+			sn = sportname;
+			$("#sport_panel").append('<li>'+'Sport Name: '+sportname+'***Sport ID:'+ sport_id +'***Time'+time +'***Hallnumber'+hallnumber + "***Note: "+note +'\n'+'</li>');
+			
 		}
 
 		
 		
-		function appendOrderToList(user_nickname, sport_id, sportname, timestamp){
+		function appendOrderToList(user_nickname, sportname, timestamp){
 			console.log("sportname ordered is: ", sportname);
 			//var $sport = $('<li>').html('<a class= "sport_link"  href="'+url+'>'+sportname+'</a>');
 			//Add to the user list
-			$("#order_panel").append('<li>'+'User Nickname: '+user_nickname+'**********Sport ID: '+sport_id+'*********Sport Name: '+sportname+'*********Timestamp: '+timestamp+'</li>');
+			$("#order_panel").append('<li>'+'User Nickname: '+user_nickname+'*********Sport Name: '+sportname+'*********Timestamp: '+timestamp+'</li>');
 		}
 
 	function display_create_user_form(){
@@ -451,6 +386,7 @@
 	
 	function display_delete_sport_form(){
 		var str = '';
+		
 		str += '<h3>Delete Sport</h3>';
 		str += '<div>Sport Name: <input type="" id="delete_sportname" /></div>';
 		str += '<div><button onclick="delete_sport();">Delete Sport</button></div>';
@@ -458,7 +394,14 @@
 	}
 	
 	function display_create_order_form(){
-
+		var str = '';
+		str += '<h3>Book this Sport</h3>';
+		str += '<div class="form-item"><label>Sport Name:</label><input type="" id="input_sportname" /></div>';
+		str += '<div class="form-item"><label>Time:</label><input type="" id="input_time" /></div>';
+		str += '<div class="form-item"><label>Hall Number:</label><input type="" id="input_hallnumber" /></div>';
+		str += '<div class="form-item"><label>Note:</label><input type="" id="input_note" /></div>';
+		str += '<div><button onclick="create_new_sport()">Create new sport</button></div>';
+		$.facebox(str);
 	}
 	
 	function display_delete_order_form(){
@@ -472,7 +415,6 @@
 			}).always(function(){
 				alert("are you sure to delete user? ");
 			}).done(function(data){
-				writeToFile(line+'User: '+$('#delete_nickname').val()+' has been deleted');
 				$.facebox.close();
 				getUsers();
 			}).fail(function(){
@@ -510,7 +452,7 @@
 			type: 'POST',
 			headers: { 
 			'Content-Type': 'application/vnd.collection+json' 
-		},
+			},
 			success: function(json){
 			console.log("data", '22');
 			alert('user has been created');
@@ -524,31 +466,33 @@
 	}
 	
 	
-	function delete_sport(){
-			$.ajax({
-			url : 'http://localhost:5001/forum/api/sports/'+ $('#delete_sportname').val() +'/',
-			type: 'DELETE'
-			}).always(function(){
-				alert("are you sure to delete sport? ");
-			}).done(function(data){
-				writeToFile('sport: '+$('#delete_sportname').val()+' has been deleted.');
-				Delete_sport();
-				$.facebox.close();
-				getSports();
-			}).fail(function(){
-				alert("There is no such sport or Sports Node is out of service");
-				Delete_sport();
-			});
+	function BookSport(nickname, sportname){
+		$.ajax(
+		{
+			url: "http://localhost:5000/forum/api/BookSports/"+nickname+"/"+sportname+"/",
+			type: 'POST',
+			headers: { 
+			'Content-Type': 'application/vnd.collection+json'
+			},
+			success: function(json){
+			console.log("data", '22');
+            alert(nickname+"  aaa   "+ "sportname");
+			},
+			error: function(xhr, ajaxOptions, thrownError){
+					alert('the username has been used');
+			}
+		});
 	}
 	
-	function Delete_sport(){
+
+	
+	function delete_sport(){
 			$.ajax({
 			url : 'http://localhost:5000/forum/api/sports/'+ $('#delete_sportname').val() +'/',
 			type: 'DELETE'
 			}).always(function(){
 				alert("are you sure to delete sport?(info from central node) ");
 			}).done(function(data){
-				writeToFile('sport: '+$('#delete_sportname').val()+'has been deleted.');
 				alert("This sport has been deleted through Central Node");
 				$.facebox.close();
 				getSports();
@@ -559,43 +503,10 @@
 	
 	
 	
+
+	
+	
 	function create_new_sport(){
-		data =  '';
-		data += '{"template":{';
-		data += '"data":[';
-		data += '{"required": true, "prompt": "Insert sportname", "name": "sportname", "value": "'+ $('#input_sportname').val() +'"},';
-		data += '{"required": false, "prompt": "Insert time", "name": "time", "value": "'+ $('#input_time').val() +'"},';
-		data += '{"required": false, "prompt": "Insert hallnumber", "name": "hallnumber", "value": "'+ $('#input_hallnumber').val() +'"},';
-		data += '{"required": false, "prompt": "Insert note", "name": "note", "value": "'+ $('#input_note').val() +'"}';
-		data += ']';
-		data += '}';
-		data += '}';
-		console.log("data", '11');
-		$.ajax(
-		{
-			url: "http://localhost:5001/forum/api/sports/",
-			data: data,
-			type: 'POST',
-			headers: { 
-			'Content-Type': 'application/vnd.collection+json' 
-		},
-			success: function(json){
-			console.log("data", '22');
-			alert('sport has been created');
-					Create_New_Sport();
-					getSports();
-					$.facebox.close();
-			},
-			error: function(xhr, ajaxOptions, thrownError){
-					alert('the sport cannot be created or Sports node is out of service');
-					Create_New_Sport();
-			}
-		});
-		
-	}
-	
-	
-	function Create_New_Sport(){
 		data =  '';
 		data += '{"template":{';
 		data += '"data":[';

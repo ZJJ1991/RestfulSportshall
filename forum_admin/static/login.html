@@ -49,12 +49,20 @@ function login()
         url: "http://localhost:5000/forum/api/login/"+user_name+"/"+pass_word+"/",
         type: 'GET',
         success: function(data) {
-		   if (data == "successfully login")
+		alert("data:" + data);
+		   if (data == 'Admin')
 			{
 			window.localStorage.setItem("username", user_name);
 			window.localStorage.setItem("password", pass_word);
-			alert("login success");
-			window.location="http://localhost:5000/forum_admin/index.html";
+			alert("login success admin");
+			window.location="http://localhost:5000/forum_admin/index_admin.html";
+			}
+			else if(data == 'Normal')
+			{
+			window.localStorage.setItem("username", user_name);
+			window.localStorage.setItem("password", pass_word);
+			alert("login success normal");
+			window.location="http://localhost:5000/forum_admin/index_normal.html";
 			}
 		},
     });
@@ -101,7 +109,7 @@ function register()
 					window.localStorage.setItem("username", username);
 					window.localStorage.setItem("password", password);
 					alert('user has been created');
-					window.location="http://localhost:5000/forum_admin/index.html";
+					window.location="http://localhost:5000/forum_admin/index_normal.html";
 			},
 			error: function(xhr, ajaxOptions, thrownError){
 					alert('the username has been used');
