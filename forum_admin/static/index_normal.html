@@ -34,8 +34,7 @@
 				<div class="section" id="userPublicInfo">
 					<form action="#" id="user_public_form">
 						<div class="commands">
-							<input type="button" value="Delete User" id="deleteUser" onclick="display_delete_user_form();">
-							<input type="button" value=" Add  User " id="addUser" onclick="display_create_user_form();">
+
 							
 						</div>
 						<p id="userHeader">  
@@ -49,9 +48,8 @@
 	            <div class="section" id="SportPublicInfo">
 					<form action="#" id="sport_public_form">
 						<div class="commands">
-							<input id="deleteSport" type="button" value="Delete Sport" onclick="display_delete_sport_form()"/>
-							<input id="addSport" type="button"    value=" Add  Sport " onclick="display_create_sport_form()"/>
-						
+							<input id="bookSport" type="button" value="Book Sport" onclick="display_book_sport_form()"/>
+							
 						</div>
 						<p id="sportHeader">  
 							<a class="sportname" id="sportname"  >sportname</a>
@@ -65,7 +63,6 @@
 					<form action="#" id="order_public_form">
 						<div class="commands">
 							<input id="deleteOrder" type="button" value="Delete Order" onclick="display_delete_order_form()"/>
-							<input id="addOrder" type="button"    value=" Add  Order" onclick="display_create_order_form()"/>
 						</div>
 						<p id="orderHeader">  
 							<a class="ordername" id="ordername"  >ordername</a>
@@ -337,7 +334,6 @@
 			username = window.localStorage.getItem("username");
 			sn = sportname;
 			$("#sport_panel").append('<li>'+'Sport Name: '+sportname+'***Sport ID:'+ sport_id +'***Time'+time +'***Hallnumber'+hallnumber + "***Note: "+note +'\n'+'</li>');
-			$("#sport_panel").append('<input id="bookSport" type="button"  onclick="BookSport(sn)"  />')
 		}
 
 		
@@ -385,29 +381,16 @@
 	}
 	
 	
-	function display_delete_sport_form(){
+	function display_book_sport_form(){
 		var str = '';
-		
-		str += '<h3>Delete Sport</h3>';
-		str += '<div>Sport Name: <input type="" id="delete_sportname" /></div>';
-		str += '<div><button onclick="delete_sport();">Delete Sport</button></div>';
+		str += '<h3>Book Sport</h3>';
+		str += '<div>Sport Name: <input type="" id="book_sportname" /></div>';
+		str += '<div><button onclick="book_sport()">Book Sport</button></div>';
 		$.facebox(str);
 	}
 	
-	function display_create_order_form(){
-		var str = '';
-		str += '<h3>Book this Sport</h3>';
-		str += '<div class="form-item"><label>Sport Name:</label><input type="" id="input_sportname" /></div>';
-		str += '<div class="form-item"><label>Time:</label><input type="" id="input_time" /></div>';
-		str += '<div class="form-item"><label>Hall Number:</label><input type="" id="input_hallnumber" /></div>';
-		str += '<div class="form-item"><label>Note:</label><input type="" id="input_note" /></div>';
-		str += '<div><button onclick="create_new_sport()">Create new sport</button></div>';
-		$.facebox(str);
-	}
+
 	
-	function display_delete_order_form(){
-	
-	}
 	
 	function delete_user(){
 			$.ajax({
@@ -468,11 +451,11 @@
 	}
 	
 	
-	function BookSport(sportname){
+	function book_sport(){
 		nickname = window.localStorage.getItem("username");
 		$.ajax(
 		{
-			url: "http://localhost:5000/forum/api/booksport/"+nickname+"/"+sportname+"/",
+			url: "http://localhost:5000/forum/api/booksport/"+ nickname+"/"+$('#book_sportname').val() +"/",
 			data: '',
 			type: 'POST',
 			headers: {
@@ -480,6 +463,7 @@
 			},
 			success: function(json){
 			console.log("data", '22');
+            $.facebox.close();
             alert(nickname+"  aaa   "+ "sportname");
 			},
 			error: function(xhr, ajaxOptions, thrownError){
@@ -533,12 +517,12 @@
 		},
 			success: function(json){
 			console.log("data", '22');
-			alert('sport has been created in Central Node');
+			alert('sport has been created');
 					getSports();
 					$.facebox.close();
 			},
 			error: function(xhr, ajaxOptions, thrownError){
-					alert('the sport cannot be created by Central Node');
+					alert('the sport cannot be created');
 			}
 		});
 		

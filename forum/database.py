@@ -239,7 +239,7 @@ class Engine(object):
         #TASK3 TODO#
         Write the SQL Statement and neccesary codeto create users_profile table
         '''
-        stmnt = 'CREATE TABLE users_profile(user_id INTEGER PRIMARY KEY UNIQUE,\
+        stmnt = 'CREATE TABLE users_profile(user_id INTEGER PRIMARY KEY AUTOINCREMENT,\
                                     firstname TEXT, lastname TEXT, email TEXT, website TEXT,\
                                     picture TEXT, mobile TEXT, skype TEXT, age INTEGER,\
                                     residence TEXT, gender TEXT, signature TEXT, avatar TEXT,\
@@ -1040,15 +1040,28 @@ class Connection(object):
         '''
         #Create the SQL Statements
           #SQL Statement for deleting the user information
-        query = 'DELETE FROM users WHERE nickname = ? And password = ?'
+        query0 = 'select * from users where nickname = ?'
+        query1 = 'DELETE FROM users WHERE nickname = ? And password = ?'
+        query2 = 'DELETE FROM users_profile WHERE user_id = ?'
         #Activate foreign key support
         #self.set_foreign_keys_support()
         #Cursor and row initialization
         self.con.row_factory = sqlite3.Row
         cur = self.con.cursor()
         #Execute the statement to delete
+        pvalue = (nickname,)
+        print nickname
+        print password
+        cur.execute(query0, pvalue)
+        row = cur.fetchone()
+        if row is None:
+            return False
+        user_id = row["user_id"]
+        print user_id
         pvalue = (nickname, password)
-        cur.execute(query, pvalue)
+        cur.execute(query1, pvalue)
+        pvalue = (user_id,)
+        cur.execute(query2, pvalue)
         self.con.commit()
         #Check that it has been deleted
         if cur.rowcount < 1:
@@ -1233,14 +1246,14 @@ class Connection(object):
         print r_profile
         _password = p_profile.get('password')
         print _password
-        _userType = p_profile.get('userType')
-        print _userType
         _regDate = p_profile.get('regDate')
         print _regDate
         _signature = p_profile.get('signature', None)
         print _signature
         _avatar = p_profile.get('avatar', None)
         print _avatar
+        _userType = p_profile.get('userType', None)
+        print _userType
         _firstname = r_profile.get('firstname', None)
         print _firstname
         _lastname = r_profile.get('lastname', None)
@@ -1252,6 +1265,7 @@ class Connection(object):
         _skype = r_profile.get('skype', None)
         _age = r_profile.get('age', None)
         _residence = r_profile.get('residence', None)'''
+        _birthday = r_profile.get('birthday', None)
         _gender = r_profile.get('gender', None)
         _picture = None
         _mobile = None

@@ -695,6 +695,9 @@ class Users(Resource):
             elif d['name'] == "signature":
                 _signature = d['value']
                 print _signature
+            elif d['name'] == "userType":
+                _userType = d['value']
+                print _userType
             elif d['name'] == "avatar":
                 _avatar = d['value']
                 print _avatar
@@ -716,6 +719,7 @@ class Users(Resource):
             elif d['name'] == "givenName":
                 _givenName = d['value']
                 print _givenName
+
         #Error if not required value
       
         #Conflict if user already exist
@@ -729,7 +733,8 @@ class Users(Resource):
                   'password': _password,
                   'regDate': _regDate,
                   'signature': _signature,
-                  'avatar': _avatar},
+                  'avatar': _avatar,
+                  'userType': _userType},
                   'restricted_profile':{'firstname': _givenName,
                   'lastname': _familyName,
                   'email':_email,
