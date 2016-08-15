@@ -863,7 +863,7 @@ api.add_resource(AllOrders, '/forum/api/orders/',
                  endpoint='allorders')
 api.add_resource(BookSport, '/forum/api/booksport/<nickname>/<sportname>/',
                  endpoint='booksport')
-api.add_resource(Order, '/forum/api/orders/<regex("order-\d+"):orderid>/',
+api.add_resource(Order, '/forum/api/orderid/<regex("order-\d+"):orderid>/',
                  endpoint='order')
 api.add_resource(Users, '/forum/api/users/',
                  endpoint='users')

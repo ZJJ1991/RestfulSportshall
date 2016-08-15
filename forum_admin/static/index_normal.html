@@ -405,6 +405,13 @@
 		$.facebox(str);
 	}
 	
+	function display_delete_order_form(){
+		var str = '';
+		str += '<h3>Delete Order</h3>';
+		str += '<div class="form-item"><label>Order ID:</label><input type="" id="delete_orderid" /></div>';
+		str += '<div><button onclick="delete_order();">Delete Order</button></div>';
+		$.facebox(str);
+	}
 
 	
 	
@@ -423,6 +430,20 @@
 			});
 	}
 
+	
+	function delete_order(){
+			$.ajax({
+			url : 'http://localhost:5000/forum/api/orderid/'+ $('#delete_orderid').val() +'/',
+			type: 'DELETE'
+			}).always(function(){
+				alert("are you sure to delete this order? ");
+			}).done(function(data){
+				$.facebox.close();
+				getOrders();
+			}).fail(function(){
+				alert("the order id is not correct...");
+			});
+	}
 
 
 	function create_new_user(){
