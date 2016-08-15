@@ -24,12 +24,12 @@
 
   
   <div id="intro">
-		<p style='position:relative;  top:-20px' ><font size="5.5" face="arial" ><b>Forum administration panel</b></font></p>
-		<p style='position:relative;  top:-8px' ><font size="2.5" face="arial" >Click on a nickname in the sidebar to edit/delete a user info. Press<b> "Add User"</b> to add a new user.</font></p>
-	</div>
+		<p style='position:relative;  top:-20px' ><font size="5.5" face="arial" ><b>Sports hall administration panel</b></font></p>
+		<p style='position:relative;  top:-8px' ><font size="2.5" face="arial" >Address: Oulu Torikatu 5.  Tel: +358417571816</font></p>
+  </div>
   
-  	<div id = "mainContent" class="maincontent" >
-			 <div id="existingUserData">
+  	<div id = "mainContent" class="maincontent" style="background-image: url(image/welcome.jpg); height: 705px; width: 940px; border: 1px solid black;">
+	<div id="existingUserData" style="visibility: hidden">
 				<!-- Main content area -->
 				<div class="section" id="userPublicInfo">
 					<form action="#" id="user_public_form">
@@ -45,7 +45,7 @@
 					</form> 
 				</div>
     </div>
-	<div id="existingSportsData">
+	<div id="existingSportsData" style="visibility: hidden">
 	            <div class="section" id="SportPublicInfo">
 					<form action="#" id="sport_public_form">
 						<div class="commands">
@@ -60,7 +60,7 @@
 					</form> 
 				</div>
 	</div>
-	<div id="existingOrdersData">
+	<div id="existingOrdersData" style="visibility: hidden">
 	            <div class="section" id="OrderPublicInfo">
 					<form action="#" id="order_public_form">
 						<div class="commands">
@@ -144,6 +144,10 @@
 			console.log("data: ", data);
 			users = data.collection.items;
 			line = line + '\n';
+			
+			document.getElementById("existingUserData").style.visibility = "visible";
+			document.getElementById("existingSportsData").style.visibility = "visible";
+			document.getElementById("existingOrdersData").style.visibility = "visible";
 			$("#existingUserData").show();
 			$("#existingSportsData").hide();
 			$("#existingOrdersData").hide();
@@ -230,6 +234,10 @@
 				console.log("sport data: ", data);
 				sports = data.collection.items;
 				console.log("sports items: ", sports);
+				
+				document.getElementById("existingUserData").style.visibility = "visible";
+				document.getElementById("existingSportsData").style.visibility = "visible";
+				document.getElementById("existingOrdersData").style.visibility = "visible";
 				$("#existingUserData").hide();
 				$("#existingSportsData").show();
 				$("#existingOrdersData").hide();
@@ -281,6 +289,10 @@
 			}).done(function(data){
 				console.log("data: ", data);
 				orders = data.collection.items;
+				
+				document.getElementById("existingUserData").style.visibility = "visible";
+				document.getElementById("existingSportsData").style.visibility = "visible";
+				document.getElementById("existingOrdersData").style.visibility = "visible";
 				$("#existingUserData").hide();
 				$("#existingSportsData").hide();
 				$("#existingOrdersData").show();
@@ -294,11 +306,14 @@
 				//    { "name" : "registrationdate", "value" : "2014-10-12" } ]
 				var order_data = order.data;
 				var user_nickname = null;
-				var sport_id = null;
+				var order_id = null;
 				var sportname = null;
 				var timestamp = null;
 				for (var j=0; j<order_data.length;j++){
 
+				    if (order_data[j].name=="order_id"){
+						order_id = order_data[j].value;
+					}
 					if (order_data[j].name=="user_nickname"){
 						user_nickname = order_data[j].value;
 					}
@@ -307,7 +322,7 @@
 					}
 					if (order_data[j].name=="timestamp"){
 						timestamp = order_data[j].value;
-						appendOrderToList(user_nickname, sportname, timestamp);
+						appendOrderToList(order_id, user_nickname, sportname, timestamp);
 					}
 				}
 			}
@@ -341,11 +356,11 @@
 
 		
 		
-		function appendOrderToList(user_nickname, sportname, timestamp){
+		function appendOrderToList(order_id, user_nickname, sportname, timestamp){
 			console.log("sportname ordered is: ", sportname);
 			//var $sport = $('<li>').html('<a class= "sport_link"  href="'+url+'>'+sportname+'</a>');
 			//Add to the user list
-			$("#order_panel").append('<li>'+'User Nickname: '+user_nickname+'*********Sport Name: '+sportname+'*********Timestamp: '+timestamp+'</li>');
+			$("#order_panel").append('<li>'+'Order ID: '+order_id+'****User Nickname: '+user_nickname+'*********Sport Name: '+sportname+'*********Timestamp: '+timestamp+'</li>');
 		}
 
 	function display_create_user_form(){

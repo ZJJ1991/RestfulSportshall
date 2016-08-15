@@ -49,19 +49,18 @@ function login()
         url: "http://localhost:5000/forum/api/login/"+user_name+"/"+pass_word+"/",
         type: 'GET',
         success: function(data) {
-		alert("data:" + data);
 		   if (data == 'Admin')
 			{
 			window.localStorage.setItem("username", user_name);
 			window.localStorage.setItem("password", pass_word);
-			alert("login success admin");
+			alert("login successfully as admin");
 			window.location="http://localhost:5000/forum_admin/index_admin.html";
 			}
 			else if(data == 'Normal')
 			{
 			window.localStorage.setItem("username", user_name);
 			window.localStorage.setItem("password", pass_word);
-			alert("login success normal");
+			alert("login successfully as normal user");
 			window.location="http://localhost:5000/forum_admin/index_normal.html";
 			}
 		},
