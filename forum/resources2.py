@@ -94,7 +94,7 @@ def connect_db():
 @app.teardown_request
 def close_connection(exc):
     ''' Closes the database connection
-        Check if the connection is created. It migth be exception appear before
+        Check if the connection is created. It migth be exception appear before`
         the connection is created.'''
     if hasattr(g, 'con'):
         g.con.close()
@@ -104,35 +104,10 @@ class Orders(Resource):
     '''
     Resource Orders implementation
     '''
-    def get(self):
-        '''
-        Get all orders.
+    def get(self, nickname=None):
 
-        INPUT parameters:
-          None
-
-        RESPONSE ENTITY BODY:
-        * Media type: Collection+JSON:
-             http://amundsen.com/media-types/collection/
-           - Extensions: template validation and value-types
-             https://github.com/collection-json/extensions
-         * Profile: Forum_order
-           http://atlassian.virtues.fi: 8090/display/PWP
-           /Exercise+4#Exercise4-Forum_order
-
-        Link relations used in items: None
-        Semantic descriptions used in items: headline
-        Link relations used in links: users-all
-        Semantic descriptors used in template: order_id, timestamp, user_nickname,
-        sport_id.
-
-        NOTE:
-         * The attribute order_id is obtained from the column Orders.order_id
-         * The attribute user_nickname is obtained from the column Orders.user_nickname
-         * The attribute sport_id is obtained from the column Orders.sport_id
-        '''
         #Extract Orders from database
-        orders_db = g.con.get_orders()
+        orders_db = g.con.get_orders(nickname)
 
         #Create the envelope
         envelope = {}
@@ -141,8 +116,8 @@ class Orders(Resource):
         collection['version'] = "1.0"
         collection['href'] = api.url_for(Orders)
         collection['links'] = [
-                                {'prompt': 'List of all users in the Forum',
-                                'rel': 'users-all', 'href': api.url_for(Users)
+                                {'prompt': 'List of all orders in the Forum',
+                                'rel': 'orders-all', 'href': api.url_for(Orders)
                                 }
             ]
         collection['template'] = {
@@ -154,53 +129,113 @@ class Orders(Resource):
                 {"prompt": "", "name": "user_nickname",
                  "value": "", "required": False},
                 {"prompt": "", "name": "sport_id",
-                 "value": "", "required": False}
+                 "value": "", "required": False},
+                {"prompt": "", "name": "sport_name",
+                 "value": "", "required": True},
+                {"prompt": "", "name": "timestamp",
+                 "value": "", "required": True} 
             ]
         }
         #Create the items
         items = []
         for order in orders_db:
             _orderid = order['order_id']
+            _usernickname = order['nickname']
+            _sportname = order['sportname']
             _timestamp = order['timestamp']
             _url = api.url_for(Order, orderid=_orderid)
             order = {}
             order['href'] = _url
             order['data'] = []
+            value = {'name':'order_id', 'value': _orderid}
+            order['data'].append(value)
+            value = {'name':'user_nickname', 'value': _usernickname}
+            order['data'].append(value)
+
+            value = {'name':'sportname', 'value': _sportname}
+            order['data'].append(value)
             value = {'name':'timestamp', 'value': _timestamp}
             order['data'].append(value)
             order['links'] = []
             items.append(order)
         collection['items'] = items
-
+        print envelope
         #RENDER
         return Response(json.dumps(envelope), 200,
                         mimetype=COLLECTIONJSON+";")
 
-    def post(self):
-        '''
-        Adds a a new order.
 
-        REQUEST ENTITY BODY:
-         * Media type: Collection+JSON:
-             http://amundsen.com/media-types/collection/
-           - Extensions: template validation and value-types
-             https://github.com/collection-json/extensions
-         * Profile: Forum_Message
-           http://atlassian.virtues.fi: 8090/display/PWP
-           /Exercise+4#Exercise4-Forum_Order
 
-        
-        The body should be a Collection+JSON template.
-        Semantic descriptors used in template: nickname and sport_id.
+class AllOrders(Resource):
+    '''
+    Resource Orders implementation
+    '''
+    def get(self):
 
-        RESPONSE STATUS CODE:
-         * Returns 201 if the order has been added correctly.
-           The Location header contains the path of the new order
-         * Returns 400 if the order is not well formed.
-         * Returns 415 if the format of the response is not json
-         * Returns 500 if the order could not be added to database.
+        #Extract Orders from database
+        orders_db = g.con.get_orders(None)
 
-        '''
+        #Create the envelope
+        envelope = {}
+        collection = {}
+        envelope["collection"] = collection
+        collection['version'] = "1.0"
+        '''collection['href'] = api.url_for(Orders)'''
+        collection['links'] = [
+                                {'prompt': 'List of all orders in the Forum',
+                                'rel': 'orders-all', 'href': api.url_for(AllOrders)
+                                }
+            ]
+        collection['template'] = {
+            "data": [
+                {"prompt": "", "name": "order_id",
+                 "value": "", "required": True},
+                {"prompt": "", "name": "timestamp",
+                 "value": "", "required": True},
+                {"prompt": "", "name": "user_nickname",
+                 "value": "", "required": False},
+                {"prompt": "", "name": "sport_id",
+                 "value": "", "required": False},
+                {"prompt": "", "name": "sport_name",
+                 "value": "", "required": True},
+                {"prompt": "", "name": "timestamp",
+                 "value": "", "required": True} 
+            ]
+        }
+        #Create the items
+        items = []
+        for order in orders_db:
+            _orderid = order['order_id']
+            _usernickname = order['nickname']
+            _sportname = order['sportname']
+            _timestamp = order['timestamp']
+            _url = api.url_for(Order, orderid=_orderid)
+            order = {}
+            order['href'] = _url
+            order['data'] = []
+            value = {'name':'order_id', 'value': _orderid}
+            order['data'].append(value)
+            value = {'name':'user_nickname', 'value': _usernickname}
+            order['data'].append(value)
+
+            value = {'name':'sportname', 'value': _sportname}
+            order['data'].append(value)
+            value = {'name':'timestamp', 'value': _timestamp}
+            order['data'].append(value)
+            order['links'] = []
+            items.append(order)
+        collection['items'] = items
+        print envelope
+        #RENDER
+        return Response(json.dumps(envelope), 200,
+                        mimetype=COLLECTIONJSON+";")
+		
+		
+		
+		
+class BookSport(Resource):
+    def post(self, nickname, sportname):
+
 
         #Extract the request body. In general would be request.data
         #Since the request is JSON I use request.get_json
@@ -212,35 +247,9 @@ class Orders(Resource):
         if COLLECTIONJSON != request.headers.get('Content-Type',''):
             return create_error_response(415, "UnsupportedMediaType",
                                          "Use a JSON compatible format")
-        request_body = request.get_json(force=True)
-         #It throws a BadRequest exception, and hence a 400 code if the JSON is
-        #not wellformed
-        try:
-            data = request_body['template']['data']
-            title = None
-            body = None
-            sender = "Anonymous"
-            ipaddress = request.remote_addr
 
-            for d in data:
-                #This code has a bad performance. We write it like this for
-                #simplicity. Another alternative should be used instead.
-                if d['name'] == 'nickname':
-                    nickname = d['value']
-                elif d['name'] == 'sport_id':
-                    sport_id = d['value']
 
-            #CHECK THAT DATA RECEIVED IS CORRECT
-            if not nickname or not sport_id:
-                return create_error_response(400, "Wrong request format",
-                                             "Be sure you include nickname and sport_id")
-        except:
-            #This is launched if either nickname or sport_id does not exist or if
-            # the template.data array does not exist.
-            return create_error_response(400, "Wrong request format",
-                                         "Be sure you include nickname and sport_id")
-        #Create the new order and build the response code'
-        neworderid = g.con.create_order(nickname, sport_id)
+        neworderid = g.con.create_order(nickname, sportname)
         if not neworderid:
             return create_error_response(500, "Problem with the database",
                                          "Cannot access the database")
@@ -252,45 +261,13 @@ class Orders(Resource):
         #Return the response
         return Response(status=201, headers={'Location': url})
 
+
+
+
 class Order(Resource):
-    '''
-    Resource that represents a single order in the API.
-    '''
 
     def get(self, orderid):
-        '''
-        Get the order_id, timestamp, user_nickname, 
-		sport_id of a specific order.
-        Returns status code 404 if the orderid does not exist in the database.
-
-        INPUT PARAMETER
-       : param str orderid: The id of the order to be retrieved from the
-            system
-
-        RESPONSE ENTITY BODY:
-         * Media type: application/hal+json:
-             http://stateless.co/hal_specification.html
-         * Profile: Forum_Order
-           http://atlassian.virtues.fi: 8090/display/PWP
-           /Exercise+4#Exercise4-Forum_Order
-
-            Link relations used: 
-
-            Semantic descriptors used: order_id, timestamp, user_nickname,
-        sport_id
-            NOTE: editor should not be included in the output if the database
-            return None.
-
-        RESPONSE STATUS CODE
-         * Return status code 200 if everything OK.
-         * Return status code 404 if the order was not found in the database.
-
-        NOTE:
-         * The attribute order_id is obtained from the column Orders.order_id
-         * The attribute user_nickname is obtained from the column Orders.user_nickname
-         * The attribute sport_id is obtained from the column Orders.sport_id
-        '''
-
+        
         #PEFORM OPERATIONS INITIAL CHECKS
         #Get the order from db
         order_db = g.con.get_order(orderid)
@@ -405,6 +382,7 @@ class Sports(Resource):
         items = []
         for sport in sports_db:
             print sport
+            _sportid = sport['sport_id']
             _sportname = sport['sportname']
             #print _sportname
             _time = sport['time']
@@ -416,7 +394,9 @@ class Sports(Resource):
             #sport['href'] = _url
             sport['read-only'] = True
             sport['data'] = []
-            value = {'sportname': 'sportname', 'value': _sportname}
+            value = {'name': 'sport_id', 'value': _sportid}
+            sport['data'].append(value)
+            value = {'name': 'sportname', 'value': _sportname}
             sport['data'].append(value)
             value = {'name': 'time', 'value': _time}
             sport['data'].append(value)
@@ -533,7 +513,7 @@ class Sport(Resource):
             'href': api.url_for(Sport, sportname=sportname),
         }
         envelope['sportname'] = sportname
-        envelope['time'] = sport_db['time']
+        envelope['time'] = sport_db['sport time']
 
         #RENDER
         return Response(json.dumps(envelope), 200,
@@ -593,6 +573,8 @@ class Users(Resource):
                  "value": "", "required": True},
                 {"prompt": "Insert user address", "name": "address",
                  "value": "", "required": False},
+                {"prompt": "Insert user regDate", "name": "regDate",
+                 "value": "", "required": False},
                 {"prompt": "Insert user avatar", "name": "avatar",
                  "value": "", "required": True},
                 {"prompt": "Insert user birthday", "name": "birthday",
@@ -617,34 +599,39 @@ class Users(Resource):
                  "value": "", "required": False}
             ]
         }
+        collection['links'] = [
+                                {'prompt': 'List of all users in the Forum',
+                                'rel': 'users-all', 'href': api.url_for(Orders)
+                                }
+            ]
         #Create the items
         items = []
         for user in users_db:
             print user
             _nickname = user['nickname']
-            #print _nickname
-            _registrationdate = user['registrationdate']
-            #print _registrationdate
-            #_lastlogin = user['lastLogin']
-            #print _lastlogin
-            #_timesviewed = user['timesviewed']
-            #print _timesviewed
+            print _nickname
+            _registrationdate = user['regDate']
+            print _registrationdate
+            _lastlogin = user['lastLogin']
+            print _lastlogin
+            _timesviewed = user['timesviewed']
+            print _timesviewed
             '''
             _registrationdate = user['regDate']
             _lastlogin = user['lastLogin']
             _timesviewed = user['timesviewed']
             '''
-            _url = api.url_for(User, nickname=_nickname)
+            #_url = api.url_for(User, nickname= _nickname)
             user = {}
-            user['href'] = _url
+            #user['href'] = _url
             user['read-only'] = True
             user['data'] = []
             value = {'name': 'nickname', 'value': _nickname}
             user['data'].append(value)
             #value = {'name': 'lastLogin', 'value': _lastlogin}
-            user['data'].append(value)
+            #user['data'].append(value)
             #value = {'name': 'timesviewed', 'value': _timesviewed}
-            user['data'].append(value)
+            #user['data'].append(value)
             '''
             value = {'name': 'regDate', 'value': _registrationdate}
             user['data'].append(value)
@@ -653,7 +640,7 @@ class Users(Resource):
             value = {'name': 'timesviewed', 'value': _timesviewed}
             user['data'].append(value)
             '''
-            value = {'name': 'nickname', 'value': _nickname}
+            value = {'name': 'regDate', 'value': _registrationdate}
             user['data'].append(value)
             items.append(user)
         collection['items'] = items
@@ -682,11 +669,13 @@ class Users(Resource):
     
         data = input['template']['data']
         _nickname = None
+        _password = None
         _regDate = None
         _lastLogin = None
         _timeviewed = None
         _address = None
         _signature = None
+        _userType = False
         _avatar = None
         _birthday = None
         _email = None
@@ -702,6 +691,9 @@ class Users(Resource):
             if d['name'] == "nickname":
                 _nickname = d['value']
                 print _nickname
+            if d['name'] == "password":
+                _password = d['value']
+                print _password
             if d['name'] == "regDate":
                 _regDate = d['value']
                 print _regDate
@@ -711,6 +703,9 @@ class Users(Resource):
             elif d['name'] == "signature":
                 _signature = d['value']
                 print _signature
+            elif d['name'] == "userType":
+                _userType = d['value']
+                print _userType
             elif d['name'] == "avatar":
                 _avatar = d['value']
                 print _avatar
@@ -732,6 +727,7 @@ class Users(Resource):
             elif d['name'] == "givenName":
                 _givenName = d['value']
                 print _givenName
+
         #Error if not required value
       
         #Conflict if user already exist
@@ -742,9 +738,11 @@ class Users(Resource):
                                                Try another one " % _nickname)
         
         user =  {'public_profile':{
+                  'password': _password,
                   'regDate': _regDate,
                   'signature': _signature,
-                  'avatar': _avatar},
+                  'avatar': _avatar,
+                  'userType': _userType},
                   'restricted_profile':{'firstname': _givenName,
                   'lastname': _familyName,
                   'email':_email,
@@ -780,45 +778,36 @@ class User(Resource):
         #FILTER AND GENERATE RESPONSE
         #Create the envelope:
         envelope = {}
-        #Now create the links
-        links = {}
-        envelope["_links"] = links
-
-        #Fill the links
-        _curies = [
-            {
-                "name": "user",
-                "href": FORUM_USER_PROFILE + "/{rels}",
-                "templated": True
-            }
-        ]
-        links['curies'] = _curies
-        links['self'] = {'href': api.url_for(User, nickname=nickname),
-                         'profile': FORUM_USER_PROFILE}
-        links['collection'] = {'href': api.url_for(Users),
-                               'profile': FORUM_USER_PROFILE,
-                               'type': COLLECTIONJSON}
-        links['user:messages'] = {
-            'profile': FORUM_MESSAGE_PROFILE,
-            'type': COLLECTIONJSON}
-        links['user:public-data'] = {
-            'profile': FORUM_USER_PROFILE,
-            'type': HAL}
-        links['user:restricted-data'] = {
-            'profile': FORUM_USER_PROFILE,
-            'type': HAL}
-        links['user:delete'] = {
-            'href': api.url_for(User, nickname=nickname),
-            'profile': FORUM_USER_PROFILE
-        }
-        envelope['nickname'] = nickname
-        envelope['registrationdate'] = user_db['public_profile']['registrationdate']
-
+        print user_db
+        public_profile = user_db['public_profile']
+        print public_profile
+        restricted_profile = user_db['restricted_profile']
+        print restricted_profile
+        collection = {}
+        envelope['collection'] = collection
+        items = []
+        #_url = api.url_for(User, nickname= _nickname)
+        profile = {}
+        profile['data'] = []
+        value = {'name': 'nickname', 'value': public_profile['nickname']}
+        print value
+        profile['data'].append(value)
+        value = {'name': 'registrationdate', 'value': public_profile['regDate']}
+        profile['data'].append(value)
+        value = {'name': 'signature', 'value': public_profile['signature']}
+        profile['data'].append(value)
+        
+        print profile
+        items.append(profile)
+        collection['items'] = items   
         #RENDER
         return Response(json.dumps(envelope), 200,
                         mimetype=HAL+";"+FORUM_USER_PROFILE)
 
-    def delete(self, nickname):
+						
+						
+class deleteUser(Resource):
+    def delete(self, nickname, password):
         '''
         Delete a user in the system.
 
@@ -832,15 +821,43 @@ class User(Resource):
         #PEROFRM OPERATIONS
         #Try to delete the user. If it could not be deleted, the database
         #returns None.
-        if g.con.delete_user(nickname):
+        if g.con.delete_user(nickname, password):
             #RENDER RESPONSE
-            return '', 204
+            return '', 200
         else:
             #GENERATE ERROR RESPONSE
             return create_error_response(404, "Unknown user",
-                                         "There is no a user with nickname %s"
+                                         "There is no user with nickname %s"
                                          % nickname)
- 
+
+
+
+
+class Login(Resource):
+
+    def get(self, nickname, password):
+        data = g.con.login(nickname, password)
+        if data:
+            userType = data['userType'] 
+            if  userType == "True":
+			    return "Admin", 200
+            else:
+                return "Normal", 200
+        else:
+            return create_error_response(404, "Wrong info",
+                                         "The username and password do not match"
+                                         )
+
+class File(Resource):
+
+	def get(self, text):
+		file = open("D:/DS_project/Node_1/forum_admin/static/data.txt", "w")
+		file.writelines(text)
+		file.close()
+		return 'successfully login', 200
+		
+		
+		
 #Add the Regex Converter so we can use regex expressions when we define the
 #routes
 app.url_map.converters['regex'] = RegexConverter
@@ -848,19 +865,28 @@ app.url_map.converters['regex'] = RegexConverter
 
 #Define the routes
 
-api.add_resource(Orders, '/forum/api/orders/',
+api.add_resource(Orders, '/forum/api/orders/<nickname>/',
                  endpoint='orders')
-api.add_resource(Order, '/forum/api/orders/<regex("order-\d+"):orderid>/',
+api.add_resource(AllOrders, '/forum/api/orders/',
+                 endpoint='allorders')
+api.add_resource(BookSport, '/forum/api/booksport/<nickname>/<sportname>/',
+                 endpoint='booksport')
+api.add_resource(Order, '/forum/api/orderid/<regex("order-\d+"):orderid>/',
                  endpoint='order')
 api.add_resource(Users, '/forum/api/users/',
                  endpoint='users')
 api.add_resource(User, '/forum/api/users/<nickname>/',
                  endpoint='user')
+api.add_resource(deleteUser, '/forum/api/deleteuser/<nickname>/<password>/',
+                 endpoint='deleteuser')
+api.add_resource(Login, '/forum/api/login/<nickname>/<password>/',
+                 endpoint='login')
 api.add_resource(Sports, '/forum/api/sports/',
                  endpoint='sports')
 api.add_resource(Sport, '/forum/api/sports/<sportname>/',
                  endpoint='sport') 
-
+api.add_resource(File, '/forum/api/files/<text>/',
+                 endpoint='file') 
 
 
 #Redirect profile

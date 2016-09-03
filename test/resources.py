@@ -126,10 +126,10 @@ class Orders(Resource):
         collection = {}
         envelope["collection"] = collection
         collection['version'] = "1.0"
-        #collection['href'] = api.url_for(Orders)
+        collection['href'] = api.url_for(Orders)
         collection['links'] = [
                                 {'title': 'List of all orders in the sporthall',
-                                'rel': 'orders-all', 'href': api.url_for(AllOrders)
+                                'rel': 'orders-all', 'href': api.url_for(Orders)
                                 }
             ]
         collection['template'] = {
@@ -626,35 +626,35 @@ class Users(Resource):
         collection['href'] = api.url_for(Users)
         collection['links'] = [{'prompt': 'List of all users',
                                 'rel': 'users-all',
-                                'href': api.url_for(Users)}
+                                'href': api.url_for(Orders)}
                               ]
         collection['template'] = {
             "data": [
                 {"prompt": "Insert nickname", "name": "nickname",
                  "value": "", "required": True},
-                {"prompt": "Insert user password", "name": "password",
-                 "value": "", "required": True},
-                {"prompt": "Insert user regDate", "name": "regDate",
-                 "value": "", "required": False},
                 {"prompt": "Insert user address", "name": "address",
                  "value": "", "required": False},
-                {"prompt": "Insert user signature", "name": "signature",
-                 "value": "", "required": False},
-                {"prompt": "Insert user userType", "name": "userType",
-                 "value": "", "required": False},
                 {"prompt": "Insert user avatar", "name": "avatar",
-                 "value": "", "required": False},
+                 "value": "", "required": True},
                 {"prompt": "Insert user birthday", "name": "birthday",
                  "value": "", "required": True},
                 {"prompt": "Insert user email", "name": "email",
-                 "value": "", "required": True},
-                {"prompt": "Insert user website", "name": "website",
                  "value": "", "required": True},
                 {"prompt": "Insert user familyName", "name": "familyName",
                  "value": "", "required": True},
                 {"prompt": "Insert user gender", "name": "gender",
                  "value": "", "required": True},
                 {"prompt": "Insert user givenName", "name": "givenName",
+                 "value": "", "required": True},
+                {"prompt": "Insert user image", "name": "image",
+                 "value": "", "required": False},
+                {"prompt": "Insert user signature", "name": "signature",
+                 "value": "", "required": True},
+                {"prompt": "Insert user skype", "name": "skype",
+                 "value": "", "required": False},
+                {"prompt": "Insert user telephone", "name": "telephone",
+                 "value": "", "required": False},
+                {"prompt": "Insert user website", "name": "website",
                  "value": "", "required": False}
             ]
         }
@@ -725,9 +725,10 @@ class Users(Resource):
         _nickname = None
         _password = None
         _regDate = None
+        _lastLogin = None
+        _timeviewed = None
         _address = None
         _signature = None
-        _userType = None
         _avatar = None
         _birthday = None
         _email = None
@@ -735,8 +736,6 @@ class Users(Resource):
         _familyName = None
         _gender = None
         _givenName = None
-
-
 
         for d in data:
         #This code has a bad performance. We write it like this for

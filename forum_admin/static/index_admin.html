@@ -410,12 +410,10 @@
 	
 	function display_create_order_form(){
 		var str = '';
-		str += '<h3>Book this Sport</h3>';
-		str += '<div class="form-item"><label>Sport Name:</label><input type="" id="input_sportname" /></div>';
-		str += '<div class="form-item"><label>Time:</label><input type="" id="input_time" /></div>';
-		str += '<div class="form-item"><label>Hall Number:</label><input type="" id="input_hallnumber" /></div>';
-		str += '<div class="form-item"><label>Note:</label><input type="" id="input_note" /></div>';
-		str += '<div><button onclick="create_new_sport()">Create new sport</button></div>';
+		str += '<h3>Make an order for a specific user</h3>';
+		str += '<div class="form-item"><label>Sport Name:</label><input type="" id="order_sportname" /></div>';
+		str += '<div class="form-item"><label>User Name:</label><input type="" id="order_nickname" /></div>';
+		str += '<div><button onclick="book_sport()">Make Order</button></div>';
 		$.facebox(str);
 	}
 	
@@ -426,6 +424,8 @@
 		str += '<div><button onclick="delete_order();">Delete Order</button></div>';
 		$.facebox(str);
 	}
+	
+	
 	
 	function delete_user(){
 			$.ajax({
@@ -498,17 +498,18 @@
 	}
 	
 	
-	function BookSport(nickname, sportname){
+	function book_sport(){
 		$.ajax(
 		{
-			url: "http://localhost:5000/forum/api/BookSports/"+nickname+"/"+sportname+"/",
+			url: "http://localhost:5000/forum/api/booksport/"+$('#order_nickname').val()+"/"+$('#order_sportname').val()+"/",
 			type: 'POST',
 			headers: { 
 			'Content-Type': 'application/vnd.collection+json'
 			},
 			success: function(json){
 			console.log("data", '22');
-            alert(nickname+"  aaa   "+ "sportname");
+			$.facebox.close();
+			getOrders();
 			},
 			error: function(xhr, ajaxOptions, thrownError){
 					alert('the username has been used');
@@ -523,13 +524,13 @@
 			url : 'http://localhost:5000/forum/api/sports/'+ $('#delete_sportname').val() +'/',
 			type: 'DELETE'
 			}).always(function(){
-				alert("are you sure to delete sport?(info from central node) ");
+				alert("Are you sure to delete sport?");
 			}).done(function(data){
-				alert("This sport has been deleted through Central Node");
+				alert("This sport has been deleted.");
 				$.facebox.close();
 				getSports();
 			}).fail(function(){
-				alert("There is no such sport(info from central node)");
+				alert("There is no such sport");
 			});
 	}
 	
@@ -560,12 +561,12 @@
 		},
 			success: function(json){
 			console.log("data", '22');
-			alert('sport has been created in Central Node');
+			alert('sport has been created');
 					getSports();
 					$.facebox.close();
 			},
 			error: function(xhr, ajaxOptions, thrownError){
-					alert('the sport cannot be created by Central Node');
+					alert('the sport cannot be created');
 			}
 		});
 		
