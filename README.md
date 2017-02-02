@@ -1,12 +1,11 @@
 Provides the database API explaination.
 
-@author: chenhaoyu
 
 db folder is to store database
 forum folder is to store API and API testing file
 
 1). All dependencies (external libraries).
-python 2.7, sqlite3£¬ flask
+python 2.7, sqlite3Â£Â¬ flask
 
 2). Setup the database framework. 
 open terminal window, run python
