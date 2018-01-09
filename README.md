@@ -1,14 +1,12 @@
 database API guideline
 
-db folder is to store database
-while forum folder is to store API and API testing file
+db folder is to store database while forum folder is to store API and API testing file
 
 1). All dependencies (external libraries).
 python 2.7, sqlite3£¬ flask
 
 2). Setup the database framework. 
-open terminal window, run python
-then input sentences below:
+open terminal window, run python then type commands as following:
 import forum.database as database
 engine = database.Engine()
 con = engine.connect()
