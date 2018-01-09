@@ -1,8 +1,7 @@
-Provides the database API explaination.
-
+database API guideline
 
 db folder is to store database
-forum folder is to store API and API testing file
+while forum folder is to store API and API testing file
 
 1). All dependencies (external libraries).
 python 2.7, sqlite3£¬ flask
