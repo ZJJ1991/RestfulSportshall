@@ -15,20 +15,20 @@ con.set_foreign_keys_support()
 con.check_foreign_keys_status()
 
 3). Instructions on how to setup and populate the database.
-create user table by inputting this sentence:
+create user table by typing these 2 commands:
 engine.create_user_table()
 change user into user_profile, friends, sports, orders to create each table
 
 4). Instruction on how to run the tests of your database.
-test each API by inputting this sentence:
+test each API by typing these 2 commands:
 con.get_user()
 change get_users() into get_user() and other APIs to test each API
 
 5). RESTful API test
 1. Go to the root of the repository in your cmd terminal
-2. To set local server run the following code:
+2. To set local server run the following codes:
    python -m test.resources_api_tests.py
-3. To see the testing results in terminal
+3. Observe the testing results in terminal
 
 6). How to use our application
 1. go to whole-project folder in cmd teminal 
